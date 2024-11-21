@@ -151,7 +151,7 @@ public final class MtsExtractor implements Extractor {
   @Override
   public void init(ExtractorOutput output) {
     this.output = output;
-    output.seekMap(new SeekMap.Unseekable(C.TIME_UNSET));
+    output.seekMap(new SeekMap.Unseekable(C.LENGTH_UNSET));
   }
 
   @Override

@@ -1201,33 +1201,10 @@ public class PlayerActivity extends Activity {
                     .setPreferredTextLanguage(locale.getISO3Language())
             );
         }
-        // https://github.com/google/ExoPlayer/issues/8571
-        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory()
-                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
-                .setTsExtractorTimestampSearchBytes(1500 * TsExtractor.TS_PACKET_SIZE);
-        @SuppressLint("WrongConstant") RenderersFactory renderersFactory = new DefaultRenderersFactory(this)
-                .setExtensionRendererMode(mPrefs.decoderPriority)
-                .setMapDV7ToHevc(mPrefs.mapDV7ToHevc);
 
-        ExoPlayer.Builder playerBuilder = new ExoPlayer.Builder(this, renderersFactory)
-                .setTrackSelector(trackSelector)
-                .setMediaSourceFactory(new DefaultMediaSourceFactory(this, extractorsFactory));
-
-        if (haveMedia && isNetworkUri) {
-            if (mPrefs.mediaUri.getScheme().toLowerCase().startsWith("http")) {
-                HashMap<String, String> headers = new HashMap<>();
-                String userInfo = mPrefs.mediaUri.getUserInfo();
-                if (userInfo != null && userInfo.length() > 0 && userInfo.contains(":")) {
-                    headers.put("Authorization", "Basic " + Base64.encodeToString(userInfo.getBytes(), Base64.NO_WRAP));
-                    DefaultHttpDataSource.Factory defaultHttpDataSourceFactory = new DefaultHttpDataSource.Factory();
-                    defaultHttpDataSourceFactory.setDefaultRequestProperties(headers);
-                    playerBuilder.setMediaSourceFactory(new DefaultMediaSourceFactory(defaultHttpDataSourceFactory, extractorsFactory));
-                }
-            }
-        }
-
-        player = playerBuilder.build();
-
+        //TODO ny
+        setPlayerFactory(isNetworkUri);
+        //
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
@@ -1362,6 +1339,38 @@ public class PlayerActivity extends Activity {
             player.setPlayWhenReady(true);
         }
     }
+
+
+    //TODO ny
+    protected void setPlayerFactory(boolean isNetworkUri){
+        // https://github.com/google/ExoPlayer/issues/8571
+        DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory()
+                .setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
+                .setTsExtractorTimestampSearchBytes(1500 * TsExtractor.TS_PACKET_SIZE);
+        @SuppressLint("WrongConstant") RenderersFactory renderersFactory = new DefaultRenderersFactory(this)
+                .setExtensionRendererMode(mPrefs.decoderPriority)
+                .setMapDV7ToHevc(mPrefs.mapDV7ToHevc);
+
+        ExoPlayer.Builder playerBuilder = new ExoPlayer.Builder(this, renderersFactory)
+                .setTrackSelector(trackSelector)
+                .setMediaSourceFactory(new DefaultMediaSourceFactory(this, extractorsFactory));
+
+        if (haveMedia && isNetworkUri) {
+            if (mPrefs.mediaUri.getScheme().toLowerCase().startsWith("http")) {
+                HashMap<String, String> headers = new HashMap<>();
+                String userInfo = mPrefs.mediaUri.getUserInfo();
+                if (userInfo != null && userInfo.length() > 0 && userInfo.contains(":")) {
+                    headers.put("Authorization", "Basic " + Base64.encodeToString(userInfo.getBytes(), Base64.NO_WRAP));
+                    DefaultHttpDataSource.Factory defaultHttpDataSourceFactory = new DefaultHttpDataSource.Factory();
+                    defaultHttpDataSourceFactory.setDefaultRequestProperties(headers);
+                    playerBuilder.setMediaSourceFactory(new DefaultMediaSourceFactory(defaultHttpDataSourceFactory, extractorsFactory));
+                }
+            }
+        }
+
+        player = playerBuilder.build();
+    }
+
 
     private void savePlayer() {
         if (player != null) {
