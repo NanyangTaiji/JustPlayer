@@ -2,6 +2,7 @@ package com.nytaiji.nybase.filePicker;
 
 
 import static com.nytaiji.nybase.filePicker.utily.storages;
+import static com.nytaiji.nybase.utils.NyFileUtil.getZipPassFromPath;
 
 import android.app.Activity;
 import android.content.Context;
@@ -186,14 +187,14 @@ public class FilePickDialog extends DialogFragment {
                     ZipFile zipFile = new ZipFile(current_path);
 
                     // Check if the ZIP file is encrypted
-                    if (zipFile.isEncrypted()) {
+                    if (zipFile.isEncrypted() && !current_path.contains("_Ny")) {
                         // Show password dialog and pass the entered password to the callback
                         new Handler(Looper.getMainLooper()).post(() -> {
                             showPasswordDialog(password -> {
                                 if (password != null && !password.isEmpty()) {
                                     // Set the password for the encrypted ZIP file
-                                  //  zipFile.setPassword(password.toCharArray());
-                                    zipPassword =password;
+                                    //  zipFile.setPassword(password.toCharArray());
+                                    zipPassword = password;
                                     // Now proceed with reading the file headers
                                     loadZipContents(zipFile);
                                 } else {
@@ -206,6 +207,9 @@ public class FilePickDialog extends DialogFragment {
                             });
                         });
                     } else {
+                        //Auto zip
+                        if (current_path.contains("_Ny"))
+                            zipPassword = getZipPassFromPath(current_path);
                         // If no password is required, just load the contents
                         loadZipContents(zipFile);
                     }
@@ -277,7 +281,7 @@ public class FilePickDialog extends DialogFragment {
                             // Log.e("FilePickDialog", "--------------current_path = "+current_path);
                             //  Log.e("FilePickDialog", "-------------item_path = "+item.path);
                             if (current_path.endsWith("zip"))
-                                listener.onSelect(current_path + "/p=" + zipPassword + "/e=" + item.path.replace("/",""));
+                                listener.onSelect(current_path + "/p=" + zipPassword + "/e=" + item.path.replace("/", ""));
                             else listener.onSelect(item.path);
                             if (toDismiss) dismiss();
                         }

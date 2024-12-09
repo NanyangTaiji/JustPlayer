@@ -2238,5 +2238,17 @@ public class NyFileUtil {
         dialog.show();
     }
 
+    public static String getZipPassFromPath(String filePath) {
+        String zipFileName = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("/") + 9);
+        int currentDay = Integer.parseInt(zipFileName);
+        if ((currentDay % 2) == 0) {
+            // number is even
+            currentDay = currentDay + 19621212;
+        } else {
+            currentDay = currentDay + 19580610;
+        }
+        return String.valueOf(currentDay);
+    }
+
 
 }
