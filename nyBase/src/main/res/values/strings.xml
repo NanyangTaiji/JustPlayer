@@ -1,0 +1,337 @@
+<resources>
+
+    <string name="nav_main">Main</string>
+    <string name="nav_tool">NYTaiji</string>
+    <string name="engine">Engine</string>
+    <string name="playBehaviour">Play Behaviour</string>
+    <string name="scale">Scale</string>
+    <string name="recall">"Video recalled: "</string>
+    <string name="now">"NOW"</string>
+    <string name="later">"ON EXIT"</string>
+
+    <string name="isTheLatestVersion">Is the latest version</string>
+    <string name="connectionTimeout">Connection timeout</string>
+    <string name="readTimeout">Read timeout</string>
+    <string name="updateLog">%1$sv%2$s update log: </string>
+    <string name="updateLogs">Update Logs</string>
+    <string name="userFeedback">User Feedback</string>
+    <string name="version">v1.9-beta03</string>
+    <string name="pleaseInsertSdCardOnYourDeviceFirst">Please insert SD card on your device first.</string>
+    <string name="downloadingUpdates">Downloading Updates…</string>
+    <string name="notHaveEnoughStorage">Device does not have enough storage.</string>
+    <string name="downloadError">Download error</string>
+    <string name="downloadNotificationChannelName">Download</string>
+    <string name="percentProgress">%.2f%%</string>
+    <string name="charsequenceProgress">%1$s/%2$s</string>
+    <string name="checkForUpdates">Check for Updates</string>
+    <string name="theInstallationPackageHasBeenDestroyed">The installation package has been destroyed.</string>
+    <string name="newAppDownloaded">New App Downloaded</string>
+    <string name="clickToInstallIt">Click to install it</string>
+    <string name="msgNotificationChannelName">Message</string>
+    <string name="downloadNotificationChannelId" translatable="false">%s__download_notification_channel</string>
+    <string name="msgNotificationChannelId" translatable="false">%s__msg_notification_channel</string>
+    <string name="findNewVersion">Find new version</string>
+    <string name="findNewVersion_title">Find New Version</string>
+    <string name="doYouNeedToUpdateItSoon">Do you need to update it soon?</string>
+    <string name="updateApk">Updated Apk</string>
+    <string name="pipExit">PiP in Exit</string>
+    <string name="onlineCache">Online Cache</string>
+    <string name="pressAgainToExitApp">Press back again to exit app</string>
+    <string name="registrationNeed">Please register with NYTaiji first!</string>
+    <string name="inputFeedback">Input registration code</string>
+    <string name="guest">"Guest"</string>
+    <string name="cancel">"CANCEL"</string>
+    <string name="redownloading">"Re-Download</string>
+    <string name="confirm">"CONFIRM"</string>
+    <string name="confirmRedownloading">"Do you want to red-ownload it?"</string>
+    <string name="addToList">"Add to List"</string>
+    <string name="appendToSelection">"Append To Selected"</string>
+    <string name="confirmdelete">"Confirm Delete..."</string>
+
+    <string name="areYouSureToDelete">"Are you sure you want to Delete:\n\n"</string>
+    <string name="inputList">"Please input valid list name!"</string>
+    <string name="selectOptions">"Selected Items Options"</string>
+    <string name="individualOptions">"Single Video Options"</string>
+    <string name="selectOnlyOne">"Please select at least one item!"</string>
+    <string name="downloadUnlock">"Please download to local and unlock from there!"</string>
+    <string name="groupOptions">"Group's Options"</string>
+    <string name="folderOptions">"Folder's Options"</string>
+    <string name="folderHide">"Folder Hide"</string>
+    <string name="folderUnHide">"Folder Unhide"</string>
+    <string name="tempUnHide">"Temporary Unhide"</string>
+
+    <string name="sameTitle">"Same title exists!"</string>
+    <string name="shareGroup">"Group Share"</string>
+    <string name="sharePath">"Video Share"</string>
+    <string name="addGroup">"Add Group to Playlist"</string>
+    <string name="playGroup">"Group Play"</string>
+    <string name="renameGroup">"Group Rename"</string>
+    <string name="deleteGroup">"Group Delete"</string>
+
+    <string name="unlocking">"Unlock"</string>
+    <string name="videoUnlock">"Video Unlock"</string>
+    <string name="videoRename">"Video Rename"</string>
+    <string name="externalPlay">"External Play"</string>
+    <string name="deletingItem">"Delete Items"</string>
+    <string name="videoDelete">"Videos Delete"</string>
+    <string name="videoConcat">"Videos Concat"</string>
+    <string name="videoEdit">"Video Edit"</string>
+    <string name="videoEncrypt">"Video Encrypt"</string>
+    <string name="headEncrypt">"Head Encrypt"</string>
+
+    <string name="requestUnlock">"Request unlock code"</string>
+    <string name="highPrevilege">"Higher privilege required to view this video"</string>
+    <string name="inputUnlock">"Input unlock code"</string>
+    <string name="peeping">"Continue peeping"</string>
+    <string name="upgrading">"Upgrade"</string>
+    <string name="invalidCode">"Invalid code"</string>
+    <string name="authenticateUnhide">"Authenticate Unhide"</string>
+    <string name="unknownUser">"Unknown User"</string>
+    <string name="group_">"Group: "</string>
+    <string name="tempUnhide_">" temporary unhide"</string>
+    <string name="checkVideos">"Checked Video Options"</string>
+    <string name="shareOne">"Share only one each time!"</string>
+    <string name="onlineManager">"Online Lists Manager"</string>
+    <string name="validOnline">"Please input valid online link!"</string>
+
+    <string name="restoreCode">"Wrong Code, restore to previous code!"</string>
+    <string name="defaultSetting">"Default"</string>
+    <string name="setting">Settings</string>
+    <string name="about">About</string>
+    <string name="search">Search</string>
+    <string name="action">Action</string>
+    <string name="local">Local</string>
+    <string name="online">Online</string>
+    <string name="list">Category</string>
+    <string name="develop">Developer Mode</string>
+
+    <string name="failInit">Folder initiation fail!</string>
+
+    <string name="registrationOk">"Register successfully"</string>
+    <string name="registration">"Registration"</string>
+    <string name="getMachine">"Get machine code"</string>
+
+    <string name="invalidLink">"The Link is expired/invalid (链接无效或过期)!"</string>
+    <string name="playingDownload">"Playing downloaded video!"</string>
+    <string name="forcedDownload">"Enforced downloading......"</string>
+    <string name="encryptedDownload">"Encrypted downloading in background......"</string>
+    <string name="backgroundDownload">"Downloading in background......"</string>
+    <string name="downloadTo">" downloaded to: "</string>
+    <string name="Download">"Download"</string>
+    <string name="EnDownload">"En_Down"</string>
+    <string name="Play">"Play"</string>
+    <string name="failPlay">"Fail in playing!"</string>
+    <string name="tempExoplayer">"Temporary select Exoplayer to play encrypted videos!"</string>
+    <string name="history">"2-History"</string>
+    <string name="input">1-Input</string>
+    <string name="newdownload">0-New Download</string>
+    <string name="wrongPassword">"Wrong Password!"</string>
+    <string name="serverFailure">"Server Failure!"</string>
+    <string name="password">"Password:"</string>
+    <string name="input16Bytes">"Please input a 16 bytes password!"</string>
+    <string name="onlineLink">"Online Link"</string>
+    <string name="purchase">"Purchase"</string>
+    <string name="donate">"Donation"</string>
+    <string name="budget">"Budget"</string>
+    <string name="amount">"Amount"</string>
+    <string name="balance">"Balance"</string>
+    <string name="insufficient">"Insufficient budget!"</string>
+    <string name="debt">"Debt"</string>
+    <string name="refund">"Refund"</string>
+    <string name="requestDonate">"Request Donation"</string>
+    <string name="inputDonate">"Input Donation"</string>
+    <string name="donationneeded">"Higher privilege/donation needed to view this video!"</string>
+    <string name="encryptCode">"Encryption Code(16 digits)"</string>
+    <string name="donateCode">"Donate Amount"</string>
+    <string name="paste">"Paste"</string>
+    <string name="donateWait">"You need to complete last transaction!"</string>
+    <string name="donateConfirm">"Inconsistent or reused code!"</string>
+    <string name="donateThanks">"Thanks for your kindly support for Nanyang Taiji!"</string>
+    <string name="confirmPay">"Are you sure this video deserves to pay for it?"</string>
+    <string name="currentVersion">"Current Version："</string>
+    <string name="deviceId">"Device ID: "</string>
+    <string name="userId">"User ID: "</string>
+    <string name="totalBalance">"Donation Balance: "</string>
+    <string name="connection">"Connecting......,"</string>
+    <string name="rotate">Rotate</string>
+    <string name="sound">sound</string>
+    <string name="ratio">ratio</string>
+    <string name="encryption">encryption</string>
+    <string name="speed">Speed</string>
+    <string name="registerRemind">Unreqistered copy, please register with NYTaiji!  Unreqistered copy, please register with NYTaiji!  Unreqistered copy, please register with NYTaiji!</string>
+    <string name="unlockRemind">Playing in the peeping mode, either upgrade your level or unlock the video by donation! Playing in the peeping mode, either upgrade your level or unlock the video by donation!</string>
+
+    <!-- dialog-->
+    <string name="create">Create</string>
+    <string name="new_folder">New folder</string>
+    <string name="no_mounted_sd">No SD-Card was found</string>
+    <string name="required">This field is required</string>
+    <string name="media_pickup">Pick up a media</string>
+    <string name="read_error">Read error</string>
+    <string name="choose">Choose</string>
+    <string name="choose_folder">Choose folder</string>
+    <string name="up">Up</string>
+
+    <string name="error_files_missing">Files app is disabled or missing</string>
+
+
+    <string name="rationale_askExternalStorage">
+        This app needs access to your memory card to scan and load videos.</string>
+    <string name="rationale_askExternalStorageAgain">
+        This app will not work without permissions to read from and write to the memory card.
+        Please go to the application settings screen to allow those permissions.
+    </string>
+    <string name="permissionsRequired">Permissions Required</string>
+    <string name="permissionsDenied">Permissions Denided</string>
+    <!-- User didn't accept all storage permissions -->
+
+    <string name="grantfailed">Storage permission not granted</string>
+    <!-- User didn't accept location permission for transfer files tab -->
+    <string name="grant_location_failed">Location permission not granted</string>
+    <!-- Shown in welcome screen for first time -->
+    <string name="grant_storage_read_permission">App needs storage read permissions for optimal performance.</string>
+    <!-- Shown in welcome screen for first time -->
+    <string name="grant_notification_permission">App needs notification permissions for optimal performance.</string>
+    <!-- Shown in welcome screen for first time -->
+    <string name="grant_permission">Grant permission</string>
+    <!-- Grant permission button for welcome screen -->
+    <string name="grant">Grant</string>
+
+    <string name="grant_all_files_permission"><html><body>Since Android 11, Google requests File Managers to request user permission for managing all files on the device. Details <a href="https://developer.android.com/training/data-storage/manage-all-files" target="_blank">here</a>.
+        \n\nAmaze File Utilities needs this permission too. After pressing &quot;Grant&quot;here, please select <b>Allow access to manage all files</b> option on the next screen.
+        \n\n<font color='#ff6347'><i>Canceling this dialog will exit the app.</i></font></body></html></string>
+
+    <!-- Need extra permissions for transfer tab -->
+    <string name="grant_location_permission">App needs location permission to connect with nearby devices.</string>
+    <!-- Need extra permissions for transfer tab -->
+    <string name="location_permission_not_granted">Please grant storage permission to connect with nearby devices.</string>
+    <!-- Waiting for permissions in transfer tab -->
+    <string name="waiting_for_permissions">Waiting for permissions…</string>
+    <string name="gps_disabled">Your GPS seems to be disabled, please enable to proceed</string>
+    <!-- Enable location to scan nearby devices in transfer tab -->
+    <string name="enable_location">Please enable location to scan.</string>
+
+    <!-- generic yes -->
+    <string name="yes">Yes</string>
+    <!-- generic no -->
+    <string name="no">No</string>
+    <string name="key_fcm_token">fcmtokenforfutureuse</string>
+    <string name="whatsappUri">whatsapp_uri</string>
+    <string name="key_download_path">key_cache_path</string>
+    <string name="key_cache_path">key_cache_path</string>
+    <string name="key_terms_con">454513512.d</string>
+    <string name="policy">
+        <b><u>Important Notice:</u></b>\n-
+    Content downloaded from this app is purely for entertainment, educational purposes and personal use only. Content should not be used for professional use. We are not responsible any legal action from Intellectual Property holder\n
+        <b><u>Crash Log:</u></b>\n
+    If an app crashes we collect details of the crash. There won\'t be any personal pieces of information are collected.\nBut we collect link that you tried to download(you can turn it off from settings).\n
+        <b><u>License:</u></b>\n
+    This app\'s source code is licensed under GNU GPL v3. Goto 3 line(≡) icon-> About (ⓘ) for more details\n
+           <b><u>Important Notice:</u></b>\n-
+    Content downloaded from this app is purely for entertainment, educational purposes and personal use only. Content should not be used for professional use. We are not responsible any legal action from Intellectual Property holder\n
+        <b><u>Crash Log:</u></b>\n
+    If an app crashes we collect details of the crash. There won\'t be any personal pieces of information are collected.\nBut we collect link that you tried to download(you can turn it off from settings).\n
+        <b><u>License:</u></b>\n
+    This app\'s source code is licensed under GNU GPL v3. Goto 3 line(≡) icon-> About (ⓘ) for more details\n
+    </string>
+
+    <string name="tablet_mode_key">tablet_mode</string>
+
+    <string name="tablet_mode_auto_key">auto</string>
+    <string name="tablet_mode_on_key">on</string>
+    <string name="tablet_mode_off_key">off</string>
+    <string-array name="tablet_mode_values">
+        <item>@string/tablet_mode_auto_key</item>
+        <item>@string/tablet_mode_on_key</item>
+        <item>@string/tablet_mode_off_key</item>
+    </string-array>
+
+    <string name="grantper">Grant permission</string>
+    <string name="storage_use_saf">storage_use_saf</string>
+    <string name="msg_popup_permission">This permission is needed to\nopen in popup mode</string>
+    <string name="loading_medialibrary">loading Medialibrary</string>
+
+    <string name="grant_storage_permission">App needs storage permission to continue. Canceling this dialog will exit the app.</string>
+
+    <!--App-->
+    <string name="allow_storage_access_title">Allow App to access video and audio files</string>
+    <string name="allow_storage_access_description">App needs you to grant this permission to access the media files on this device.</string>
+    <string name="allow_storage_manager_title">Allow App all file access</string>
+    <string name="allow_storage_manager_description">%s\n\nGrant permission?</string>
+    <string name="allow_storage_manager_explanation">To get all the capabilities of App and the support of all types of media files, we strongly suggest you to grant this permission.</string>
+    <string name="partial_content">App cannot access all of your files</string>
+    <string name="partial_content_description">Starting with Android 11, applications need a special permission to access all device\'s files.\n\n%s</string>
+    <string name="never_ask_again">Never ask again</string>
+    <string name="never_show_again">Never show again</string>
+    <string name="allow_draw_overlays_title">Allow App player popup over other apps</string>
+    <string name="allow_sdraw_overlays_description">App needs you to grant this permission display your video in a popup over other applications.</string>
+    <string name="allow_pip">Allow App player to launch the Picture in Picture</string>
+    <string name="allow_pip_description">App needs you to grant this permission to display your video in Picture in Picture mode.</string>
+    <string name="permission_ask_again">Grant permission</string>
+    <string name="pick_file">Pick a file</string>
+    <string name="permission_not_granted">Permission not granted</string>
+    <string name="permission_expanation_no_allow">You won\'t be able to auto-discover your media nor use external subtitles</string>
+    <string name="permission_expanation_allow">You will be able to only play streams or network media</string>
+    <string name="permission_onboarding_no_perm">You won\'t be able to auto-discover your media.\nYou will be able to only play streams or network media</string>
+    <string name="permission_onboarding_perm_media">You will only be able to auto-discover standard media files</string>
+    <string name="permission_onboarding_perm_all">You will be able to auto-discover all your files to play all types of media even weird ones, or compressed files</string>
+
+    <string name="exit_app">Close App</string>
+    <string name="exit_app_msg">Are you sure you want to quit App?</string>
+    <string name="sdcard_permission_dialog_title">You have to grant VLC write access to your SD Card</string>
+    <string name="sdcard_permission_dialog_message">VLC cannot delete this file without write access permission.\nPlease go to your SD Card and click on \"Select\".\nYou may have to click on \"Show SD card\" first in the top-right menu</string>
+    <string name="dialog_sd_wizard">Show me</string>
+
+    <string name="open_settings">Open settings</string>
+
+    <string name="all_files_access_rationale_message">App needs access to manage all files. Please allow the access in the upcoming system setting.</string>
+    <!-- The allow button before Android 10 was in all-caps. -->
+    <string name="storage_permission_rationale_message">App needs permission to access files. Please click “ALLOW” in the upcoming system dialog.</string>
+    <string name="storage_permission_permanently_denied_message">App needs permission to access files. Please grant the “Storage” permission in system settings.</string>
+
+
+    <!-- Unable to find cast for tv framework -->
+    <string name="cast_framework_unavailable">Unable to initialize cast framework, please update Google Play services</string>
+    <string name="cast_notification_title">Server running…</string>
+    <!-- tv casting content notification content -->
+    <string name="cast_notification_summary">Casting content on TV</string>
+    <!-- stop tv cast server notification button -->
+    <string name="stop">Stop</string>
+    <!-- Service description to cast media files to tv -->
+    <string name="cloud_streamer_service_description">Casts media for Amaze File Utilities</string>
+    <string name="failed_to_start_cast">Failed to start cast session</string>
+    <!-- Ready to cast images / videos to tv -->
+    <string name="ready_to_cast">Ready to cast, select any media</string>
+    <!-- Creating new cast to tv connection -->
+    <string name="establishing_cast">Establishing cast connection</string>
+    <!-- Cast session suspended for tv -->
+    <string name="cast_suspended">Cast session suspended</string>
+    <!-- Resuming tv cast session -->
+    <string name="resuming_cast">Resuming cast session</string>
+    <!-- Failed to resume tv cast session -->
+    <string name="failed_resume_cast">Failed to resume cast session</string>
+    <!-- Tv cast session resumed -->
+    <string name="cast_resumed">Cast session resumed</string>
+    <!-- Tv cast session ending -->
+    <string name="cast_ending">Ending cast session</string>
+    <!-- Tv cast session ended -->
+    <string name="cast_ended">Cast session ended</string>
+    <!-- Open image/ videos/ audios with either cast on tv or open in mobile -->
+    <string name="open_with">Open with…</string>
+    <string name="chromecast" translatable="false">Chromecast</string>
+    <string name="inbuilt_player">In-built player</string>
+    <string name="nycasting">NyCasting</string>
+
+
+    <string name="select_streamer">Select Streaming Server</string>
+    <!-- The allow button is in sentence case now. -->
+    <string name="notification_permission_rationale_message">App needs permission to post notifications about file operations. Please click “Allow” in the upcoming system dialog.</string>
+    <string name="notification_permission_permanently_denied_message">App needs permission to post notifications about file operations. Please grant the “Notification” permission in system settings.</string>
+
+
+    <string name="loading">Loading...</string>
+    <string name="playlist">Playlist</string>
+    <string name="grant_apkinstall_permission">App needs permission to install apps continue.</string>
+
+
+</resources>

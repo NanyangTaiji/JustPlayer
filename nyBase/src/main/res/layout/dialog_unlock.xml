@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <com.nytaiji.nybase.view.GestureUnlockView
+        android:id="@+id/gesture_unlock_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorWhite"
+        app:color_normal="@color/colorMidnightBlue"
+        app:color_selected="@color/colorGold"
+        app:color_error="@color/colorRed"
+        app:stroke_width="2dp"
+        app:line_width="2dp"
+        />
+
+</LinearLayout>

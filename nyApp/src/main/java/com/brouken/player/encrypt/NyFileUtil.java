@@ -339,6 +339,7 @@ public class NyFileUtil {
      */
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public static String getPath(final Context context, final Uri uri) {
+        if (uri==null) return null;
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
         String url = null;
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
@@ -380,7 +381,7 @@ public class NyFileUtil {
 
                 url = getDataColumn(context, contentUri, selection, selectionArgs);
             }
-        } else if (uri.getScheme() != null) {
+        } else if (uri!=null && uri.getScheme() != null) {
             // MediaStore (and general)
             if ("content".equalsIgnoreCase(uri.getScheme())) {
                 // Return the remote address

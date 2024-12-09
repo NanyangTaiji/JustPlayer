@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="grid_icon_size">72dp</dimen>
+    <dimen name="dir_elevation">8dp</dimen>
+    <dimen name="grid_item_width">160dp</dimen>
+    <dimen name="grid_item_height">160dp</dimen>
+    <dimen name="home_padding">0dp</dimen>
+    <dimen name="home_item_height">60dp</dimen>
+    <dimen name="home_item_padding">10dp</dimen>
+    <integer name="home_span">30</integer>
+    <dimen name="shortcut_height">50dp</dimen>
+    <dimen name="list_item_padding">16dp</dimen>
+    <dimen name="grid_item_padding">4dp</dimen>
+
+    <dimen name="icon_size">40dp</dimen>
+</resources>

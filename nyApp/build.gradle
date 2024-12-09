@@ -9,9 +9,9 @@ android {
 
     defaultConfig {
         applicationId "com.brouken.player"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 34
-        versionCode 174
+        versionCode 177
         versionName "0.${versionCode}"
         archivesBaseName = "Just.Player.v${versionName}"
     }
@@ -74,7 +74,7 @@ android {
 }
 
 dependencies {
-    def media3_version = '1.5.0-beta01'
+    def media3_version = '1.5.0'
     def androidxCoreVersion = '1.8.0'
     implementation "androidx.media3:media3-session:$media3_version"
     implementation "androidx.media3:media3-datasource:$media3_version"
@@ -104,6 +104,6 @@ dependencies {
     implementation 'androidx.preference:preference:1.2.1'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation project(path: ':doubletapplayerview')
-    implementation project(path: ':android-file-chooser')
+    implementation project(path: ':nyBase')
     implementation fileTree(dir: "libs", include: ["lib-*.aar"])
 }

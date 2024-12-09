@@ -45,7 +45,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.media3.common.Format;
 import androidx.media3.common.MimeTypes;
 
-import com.obsez.android.lib.filechooser.ChooserDialog;
+//import com.obsez.android.lib.filechooser.ChooserDialog;
 
 import java.io.File;
 import java.io.InputStream;
@@ -577,8 +577,9 @@ class Utils {
                 activity.playerView.hideController();
         }
     }
+    //TODO ny
 
-    public static boolean alternativeChooser(PlayerActivity activity, Uri initialUri, boolean video) {
+  /*  public static boolean alternativeChooser(PlayerActivity activity, Uri initialUri, boolean video) {
         String startPath;
         if (initialUri != null && (new File(initialUri.getSchemeSpecificPart())).exists()) {
             startPath = initialUri.getSchemeSpecificPart();
@@ -623,7 +624,7 @@ class Utils {
         chooserDialog.build().show();
 
         return true;
-    }
+    }*/
 
     public static boolean isPiPSupported(Context context) {
         PackageManager packageManager = context.getPackageManager();

@@ -1,0 +1,80 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.amaze.filemanager.fileoperations'
+    compileSdk 35
+
+    defaultConfig {
+        minSdkVersion 21
+
+        consumerProguardFiles "consumer-rules.pro"
+
+		multiDexEnabled true
+
+        externalNativeBuild {
+            cmake {
+                cFlags '-std=c11'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            ndk.debugSymbolLevel = 'FULL'
+        }
+    }
+
+    sourceSets {
+        test.java.srcDirs += '../testShared/src/test/java'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+
+   /* externalNativeBuild {
+        cmake {
+            path file('src/main/c/CMakeLists.txt')
+            version '3.18.1'
+        }
+    }*/
+
+
+}
+
+
+dependencies {
+    modules {
+        module("org.bouncycastle:bcprov-jdk15to18") {
+            replacedBy("org.bouncycastle:bcprov-jdk15on")
+        }
+        module("org.bouncycastle:bcpkix-jdk15to18") {
+            replacedBy("org.bouncycastle:bcpkix-jdk15on")
+        }
+    }
+
+   implementation "org.apache.commons:commons-compress:1.22"
+
+    //zip4j: support password-protected zips
+    implementation "net.lingala.zip4j:zip4j:2.6.4"
+
+//    implementation project(':commons_compress_7z')
+
+    //SFTP
+    implementation "com.hierynomus:sshj:0.35.0"
+
+    //smb
+    implementation "eu.agno3.jcifs:jcifs-ng:2.1.9"
+
+    implementation 'androidx.multidex:multidex:2.0.1'//Multiple dex files
+
+    //TODO some libs are not needed
+
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+
+}

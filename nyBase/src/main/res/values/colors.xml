@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="colorPrimary">#cfcfcf</color>
+    <color name="colorPrimaryDark">#998200</color>
+    <color name="colorAccent">#998200</color>
+    <color name="semiTransparentWhite">#20FFFFFF</color>
+    <color name="textPrimary">#2F3640</color>
+    <color name="colorSilver">#cfcfcf</color>
+    <color name="darkSilver">#bababa</color>
+    <color name="colorGold">#998200</color>
+    <color name="colorRed">#F44336</color>
+    <color name="text_gray">#9b9b9b</color>
+
+    <!-- 普通layout背景色 -->
+    <color name="layout_bg_color">#f3f3f3</color>
+    <!-- 普通item背景色 -->
+    <color name="item_bg_color">#ffffff</color>
+
+    <color name="main_text">#de000000</color>
+    <color name="secondary_text">#89000000</color>
+    <color name="hint_text">#61000000</color>
+
+    <color name="accentColor">#EF3A0F</color>
+    <color name="colorAccent_translucent">#8000B0FF</color>
+    <color name="statusBarColor">#28000000</color>
+    <color name="dark_blue">#2980b9</color>
+    <color name="darker_blue">#20638f</color>
+    <color name="light_blue">#e8eaf6</color>
+    <color name="lighter_orange">#ffad33</color>
+
+    <color name="colorWhite">#fff</color>
+    <color name="colorBelizeHole">#2980b9</color>
+    <color name="colorMidnightBlue">#2c3e50</color>
+    <color name="colorOrange">#f39c12</color>
+    <color name="colorPomegranate">#c0392b</color>
+
+    <color name="gold_transparent" tools:ignore="MissingDefaultResource">#4D998200</color>
+    <color name="green_transparent">#3300FFFF</color>
+    <color name="orange_transparent">#80c0392b</color>
+    <color name="darkgreen_transparent">#8000688B</color>
+    <color name="dark_transparent">#CC00688B</color>
+    <color name="black_transparent">#00000000</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="pure_transparent">#00000000</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green">#3DDC84</color>
+    <color name="shortcut_background">#F5F5F5</color>
+    <color name="ui_controls_background">#98000000</color>
+    <color name="exo_white">#ffffff</color>
+    <color name="exo_white_opacity_70">#B3ffffff</color>
+    <color name="exo_black_opacity_70">#B3000000</color>
+    <color name="exo_black_opacity_60">#98000000</color>
+    <color name="exo_styled_error_message_background">#80808080</color>
+    <color name="exo_bottom_bar_background">#b0000000</color>
+
+    <color name="ripple_dark">#1dffffff</color>
+    <color name="ripple_light">#1d000000</color>
+    <color name="ripple_color">#FF000000</color>
+    <color name="ripple_mask">#FFFFFFFF</color>
+
+    <color name="splitter">#1f000000</color>
+    <!-- ny - - -->
+    <color name="item_doc_generic">#ddd</color>
+    <color name="item_doc_file">#808080</color>
+    <color name="item_doc_audio">#FF9800</color>
+    <color name="item_doc_video">#C74141</color>
+    <color name="item_doc_image">#00838F</color>
+
+    <color name="item_doc_smb">#FFC107</color>
+    <color name="item_doc_playlist">#9C27B0</color>
+    <color name="item_doc_online">#3F51B5</color>
+    <color name="item_doc_tools">#00BCD4</color>
+    <color name="item_doc_internet">#03A9F4</color>
+
+
+    <color name="item_doc_apk">#8BC34A</color>
+    <color name="item_doc_apps">#795548</color>
+
+    <color name="item_doc_pdf">#FFDB4437</color>
+    <color name="item_doc_doc">#FF4883F3</color>
+    <color name="item_doc_sheet">#FF16A765</color>
+    <color name="item_doc_slide">#FFF4B400</color>
+    <color name="item_doc_word">#FF4883F3</color>
+    <color name="item_doc_excel">#FF16A765</color>
+    <color name="item_doc_powerpoint">#FFFF7537</color>
+
+    <color name="item_doc_compressed">#795548</color>
+    <color name="item_doc_code">#607D8B</color>
+    <color name="item_doc_certificate">#757575</color>
+
+    <color name="item_doc_contact">#03A9F4</color>
+    <color name="item_doc_event">#1E88E5</color>
+    <color name="item_doc_font">#455A64</color>
+
+    <color name="item_connection_gdrive">#03A9F4</color>
+    <color name="item_connection_dropbox">#FFF4B400</color>
+    <color name="item_connection_onedrive">#FFFF7537</color>
+    <color name="item_connection_box">#03A9F4</color>
+    <color name="item_connection_cloud">#455A64</color>
+
+    <color name="item_root_pressed">#33cccccc</color>
+    <color name="item_root_focused">#66cccccc</color>
+
+</resources>

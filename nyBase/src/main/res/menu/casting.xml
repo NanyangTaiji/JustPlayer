@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <item
+        android:id="@+id/menu_stop_route"
+        android:icon="@drawable/exo_icon_stop"
+        android:title="Disconnect"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_play_route"
+        android:icon="@drawable/exo_icon_play"
+        android:title="Play link"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_connect_route"
+        android:title="Chromecast"
+        app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
+        app:showAsAction="always"/>
+</menu>

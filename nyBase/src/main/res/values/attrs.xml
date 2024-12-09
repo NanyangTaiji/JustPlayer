@@ -1,0 +1,175 @@
+<resources>
+    <declare-styleable name="GestureUnlockView">
+        <attr name="color_normal" format="color"/>
+        <attr name="color_selected" format="color"/>
+        <attr name="color_error" format="color"/>
+        <attr name="point_radius" format="dimension"/>
+        <attr name="stroke_line_width" format="dimension"/>
+        <attr name="line_width" format="dimension"/>
+        <attr name="radius_factor" format="float"/>
+    </declare-styleable>
+
+    <declare-styleable name="ZoomLayout">
+        <attr name="min_zoom" format="float"/>
+        <attr name="max_zoom" format="float"/>
+        <attr name="double_click_zoom" format="float"/>
+    </declare-styleable>
+
+    <declare-styleable name="ZoomableTextureView">
+        <attr name="minScale" format="float" />
+        <attr name="maxScale" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="CircleImageView">
+        <attr name="civ_border_width" format="dimension" />
+        <attr name="civ_border_color" format="color" />
+        <attr name="civ_border_overlay" format="boolean" />
+        <attr name="civ_fill_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="FloatingActionButtonWithText">
+        <attr name="imageSrc" format="reference" localization="suggested" />
+        <attr name="text" format="string" localization="suggested" />
+    </declare-styleable>
+
+    <declare-styleable name="animateTextView">
+        <attr name="shuffleTexts" format="boolean" />
+        <attr name="intervalText" format="integer" />
+        <attr name="textArray" format="string" />
+        <attr name="fadeInFadeOut" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="animateImageView">
+        <attr name="intervalImage" format="integer" />
+        <attr name="imageType" format="string" />
+        <attr name="shuffleImages" format="boolean" />
+        <attr name="imageFadeInFadeOut" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="View">
+        <attr name="background" />
+    </declare-styleable>
+
+    <declare-styleable name="Themes">
+        <attr name="numberProgressBarStyle" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="NumberProgressBar">
+        <attr name="progress" format="integer" />
+        <attr name="max" format="integer" />
+
+        <attr name="progress_unreached_color" format="color" />
+        <attr name="progress_reached_color" format="color" />
+
+        <attr name="progress_reached_bar_height" format="dimension" />
+        <attr name="progress_unreached_bar_height" format="dimension" />
+
+        <attr name="progress_text_size" format="dimension" />
+        <attr name="progress_text_color" format="color" />
+
+        <attr name="progress_text_offset" format="dimension" />
+
+        <attr name="progress_text_visibility" format="enum">
+            <enum name="visible" value="0" />
+            <enum name="invisible" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="RecyclerViewPlus">
+        <attr name="gridColumnWidth" format="dimension" />
+        <attr name="type" format="enum">
+            <enum name="list" value="0" />
+            <enum name="grid" value="1" />
+            <enum name="gallery" value="2" />
+            <enum name="custom" value="3" />
+        </attr>
+        <attr name="span" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="LineColorPicker">
+        <attr name="orientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+        <attr name="colors" format="reference" />
+        <attr name="selectedColorIndex" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="MaterialProgressBar">
+        <attr name="color" />
+        <attr name="stroke_width" format="dimension" />
+        <attr name="min_sweep_angle" format="integer" />
+        <attr name="max_sweep_angle" format="integer" />
+        <attr name="sweep_speed" format="float" />
+        <attr name="rotation_speed" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="CompatTextView">
+        <attr name="compoundDrawableWidth" format="dimension"/>
+        <attr name="compoundDrawableHeight" format="dimension"/>
+        <attr name="drawableStart" format="reference"/>
+        <attr name="drawableTop" format="reference"/>
+        <attr name="drawableEnd" format="reference"/>
+        <attr name="drawableBottom" format="reference"/>
+    </declare-styleable>
+
+    <declare-styleable name="TextPressedView">
+        <attr name="textRippleColor" format="reference|color" />
+        <attr name="textPressedTarget">
+            <flag name="none" value="0" />
+            <flag name="text" value="1" />
+            <flag name="background" value="2" />
+            <flag name="compound_drawable" value="4" />
+        </attr>
+        <attr name="textPressedColor" format="reference|color" />
+        <attr name="textPressedAlpha" format="float" />
+        <attr name="textPressedMode">
+            <enum name="color" value="0" />
+            <enum name="alpha" value="1" />
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="ImagePressedView">
+        <attr name="imageRippleColor" format="reference|color" />
+        <attr name="imagePressedTarget">
+            <flag name="none" value="0" />
+            <flag name="src" value="1" />
+            <flag name="background" value="2" />
+        </attr>
+        <attr name="imagePressedColor" format="reference|color" />
+        <attr name="imagePressedAlpha" format="float" />
+        <attr name="imagePressedMode">
+            <enum name="color" value="0" />
+            <enum name="alpha" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="roundView">
+        <attr name="backgroundColor" format="reference|color" />
+    </declare-styleable>
+
+    <declare-styleable name="DragLinearLayout">
+        <attr name="scrollSensitiveHeight" format="dimension" />
+        <attr name="placeholderView" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="CircleProgressView">
+        <!--背景色-->
+        <attr name="progressBackgroundColor" format="reference" />
+        <!--进度条颜色-->
+        <attr name="progressColor" format="reference" />
+
+        <!--  <attr name="progress" format="integer" />进度-->
+          <!--进度条宽度-->
+        <attr name="progressWidth" format="dimension" />
+        <!--字体大小-->
+        <attr name="textSize" format="dimension" />
+        <!--字体颜色-->
+        <attr name="textColor" format="reference" />
+    </declare-styleable>
+
+
+    <!--vlc scan-->
+    <attr name="scan_background" format="reference" />
+    <attr name="background_default" format="reference|color" />
+    <attr name="font_default" format="reference|color" />
+</resources>

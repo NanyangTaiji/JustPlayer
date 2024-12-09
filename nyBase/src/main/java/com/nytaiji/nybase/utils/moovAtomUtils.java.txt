@@ -1,0 +1,145 @@
+package com.nytaiji.core.utils;
+
+import static com.nytaiji.core.moovAtom.QtFaststart.faststart;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+public class moovAtomUtils {
+
+
+    private static final int HEADER_SIZE = 128;
+    // for FFMpeg movFlag operation
+    // index of the header containing 'moov' atom by testing is 36, 4K original is 28
+    // the size is 27757
+    public static boolean isMoovAtomAtBeginning(String filePath) {
+        try (RandomAccessFile file = new RandomAccessFile(filePath, "r")) {
+            byte[] header = new byte[HEADER_SIZE];
+            file.read(header);
+            String head = new String(header, 0, HEADER_SIZE);
+            int index = head.indexOf("moov");
+            // Check if there are 4 bytes contain 'moov' atom and the size is valid
+            if (index != -1) {
+              //  Log.e("FFmpegUtil", "index=" + index);
+               // Log.e("FFmpegUtil", "moov =" + head.substring(index, index + 4));
+                int moovSize = readInt32FromByteArray(header, index + 5);
+                if (moovSize <= file.length()) {
+                //    Log.e("FFmpegUtil", "moovSize=" + moovSize);
+                    // Found valid 'moov' atom at the beginning
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Moov atom not found at the beginning or invalid moov atom
+        return false;
+    }
+
+    private static int readInt32FromByteArray(byte[] data, int offset) {
+        return ((data[offset] & 0xFF) << 24) |
+                ((data[offset + 1] & 0xFF) << 16) |
+                ((data[offset + 2] & 0xFF) << 8) |
+                (data[offset + 3] & 0xFF);
+    }
+
+
+    public static void fastStartMp4(Context context, String source, String target) {
+        if (isMoovAtomAtBeginning(source)) {
+            return;
+        }
+        new Thread() {
+            public void run() {
+              /*  try {
+                    // Create InputStream A (for example, from a file)
+                    InputStream inputStreamA = Files.newInputStream(Paths.get(source));
+
+                    // Create OutputStream B (for example, to a new file)
+                    OutputStream outputStreamB = Files.newOutputStream(Paths.get(target));
+
+                    // Move moov atom from InputStream A to OutputStream B
+                    moveMoovAtom(inputStreamA, outputStreamB);
+
+                    // Close streams
+                    inputStreamA.close();
+                    outputStreamB.close();
+
+                    //   System.out.println("Moov atom moved successfully.");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }*/
+
+                try {
+                    Path path = Paths.get(source);
+                    byte[] mp4File = Files.readAllBytes(path);
+
+                    // Faststart the MP4 file
+                    byte[] faststartedMp4 = faststart(mp4File);
+
+                    Files.write(Paths.get(target), faststartedMp4);
+
+                  //  System.out.println("MP4 file faststarted and saved to: " + outputFilePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }.start();
+    }
+
+
+    public static void moveMoovAtom(InputStream inputStream, OutputStream outputStream) throws IOException {
+        // Read the input stream into a byte array
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, bytesRead);
+        }
+
+        byte[] inputBytes = byteArrayOutputStream.toByteArray();
+
+        // Find the position of the moov atom in the inputBytes
+        int moovAtomStart = findMoovAtom(inputBytes);
+
+        if (moovAtomStart != -1) {
+            // Copy moov atom to the beginning of the output stream
+            outputStream.write(inputBytes, moovAtomStart, inputBytes.length - moovAtomStart);
+            // Copy the remaining content of the input stream to the output stream
+            outputStream.write(inputBytes, 0, moovAtomStart);
+        } else {
+            // Moov atom not found, just copy the inputBytes to the output stream
+            outputStream.write(inputBytes);
+        }
+    }
+
+    private static int findMoovAtom(byte[] data) {
+        // Search for the moov atom (ASCII: "moov") from the end of the data
+        for (int i = data.length - 4; i >= 0; i--) {
+            if (data[i] == 'm' && data[i + 1] == 'o' && data[i + 2] == 'o' && data[i + 3] == 'v') {
+                // Found the moov atom
+                Log.e("moovAtomUtils----------","position="+i);
+                return i;
+            }
+        }
+        // Moov atom not found
+        return -1;
+    }
+}
+
+
+
+
+

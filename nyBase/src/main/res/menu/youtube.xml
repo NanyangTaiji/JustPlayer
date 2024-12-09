@@ -1,0 +1,35 @@
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/youtube_open"
+        android:title="Open Stream"
+        android:icon="@drawable/common_full_open_on_phone"
+        />
+
+    <item
+        android:id="@+id/youtube_add_playlist"
+        android:title="Add Link to Playlist"
+        android:icon="@drawable/ic_playlist_add"
+        />
+
+    <item
+        android:id="@+id/youtube_downloading"
+        android:title="@string/Download"
+        android:icon="@drawable/ic_file_download_black"
+        />
+
+    <item
+        android:id="@+id/youtube_cpy"
+        android:title="Copy Original"
+        android:icon="@drawable/ic_baseline_content_copy_24"
+        />
+
+    <item
+        android:id="@+id/youtube_share"
+        android:title="Share Stream"
+        android:icon="@drawable/ic_share_24dp"
+        />
+
+</menu>
