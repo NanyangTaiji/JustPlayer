@@ -1,6 +1,5 @@
 package com.nytaiji.nybase.filePicker;
 
-
 import static com.nytaiji.nybase.filePicker.utily.storages;
 import static com.nytaiji.nybase.utils.NyFileUtil.getZipPassFromPath;
 
@@ -20,6 +19,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -71,13 +71,11 @@ public class FilePickDialog extends DialogFragment {
     private boolean toDismiss = true;
 
     private boolean isInZip = false; // Flag to track if inside a ZIP
-
     private String zipPassword = "";
     private String zipParentPath = null; // To track parent of the ZIP if navigating inside
 
     public FilePickDialog() {
     }
-
 
     public static void pickupFile(Context context, boolean toDismiss, GeneralCallback generalCallback) {
         if (PermissionHelper.checkStoragePermissions((Activity) context,
@@ -93,17 +91,13 @@ public class FilePickDialog extends DialogFragment {
 
                                 @Override
                                 public void onError(String msg) {
+                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
                                 }
-                            }
-                            , toDismiss)
+                            }, toDismiss)
                     .show(((FragmentActivity) context).getSupportFragmentManager(), "");
         }
-
-
     }
 
-
-    //TODO ny   when doDismiss set false, this dialog can serve as a simple file explorer for repeated action
     public static FilePickDialog newInstance(@StringRes int title, @Nullable String[] extensions, ImportListener listener, boolean toDismiss) {
         FilePickDialog dialog = new FilePickDialog();
         dialog.title = title;
@@ -112,7 +106,6 @@ public class FilePickDialog extends DialogFragment {
         dialog.toDismiss = toDismiss;
         return dialog;
     }
-
 
     public static FilePickDialog newInstance(@StringRes int title, @Nullable String[] extensions, ImportListener listener) {
         return newInstance(title, extensions, listener, true);
@@ -126,9 +119,7 @@ public class FilePickDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-
         getDialog().setCanceledOnTouchOutside(toDismiss);
-
         prefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         storages = storages(getActivity());
         return inflater.inflate(R.layout.dialog_file_pick, container);
@@ -142,31 +133,23 @@ public class FilePickDialog extends DialogFragment {
             listener.onError(getString(R.string.no_mounted_sd));
             dismiss();
         } else {
-            current_path = prefs.getString(LAST_READ_PATH, "/storage");
-
             ((TextView) view.findViewById(R.id.item_title)).setText(title);
-            recyclerView = (FixedHeightRecyclerView) view.findViewById(R.id.recyclerView);
+            recyclerView = view.findViewById(R.id.recyclerView);
             items = new ArrayList<>();
+            current_path = prefs.getString(LAST_READ_PATH, "/storage");
             reload();
 
-            view.findViewById(R.id.positive_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dismiss();
-                }
-            });
-
-            view.findViewById(R.id.neutral_btn).setOnClickListener(btnview -> {
+            view.findViewById(R.id.positive_btn).setOnClickListener(v -> dismiss());
+            view.findViewById(R.id.neutral_btn).setOnClickListener(v -> {
                 if (isInZip) {
-                    // Exit ZIP navigation
-                    current_path = zipParentPath; // Restore the parent path
-                    isInZip = false; // Reset ZIP navigation flag
-                    zipParentPath = null; // Clear ZIP parent path
+                    current_path = zipParentPath;
+                    isInZip = false;
+                    zipPassword = null; // Clear password when exiting ZIP
+                    zipParentPath = null;
                 } else {
-                    // Go up in the normal file hierarchy
                     current_path = parentPath;
                 }
-                reload(); // Reload with the updated path
+                reload();
             });
         }
     }
@@ -178,31 +161,31 @@ public class FilePickDialog extends DialogFragment {
         executorService.execute(() -> {
             items.clear();
 
-            if (isInZip) {
-                //TODO ny
-                //  items.add(new Folder(NyFileUtil.getLastSegmentFromString(current_path), zipParentPath, true));
-
-                // Handling ZIP file navigation
+            if (current_path.endsWith(".zip")) {
+                // If the path stored in preference is a ZIP file, treat it as a ZIP
+                isInZip = true;
+                zipParentPath = new File(current_path).getParent(); // Set the parent folder of the ZIP
                 try {
                     ZipFile zipFile = new ZipFile(current_path);
 
-                    // Check if the ZIP file is encrypted
+                    // Check if the ZIP file is encrypted and not autoxip
                     if (zipFile.isEncrypted() && !current_path.contains("_Ny")) {
-                        // Show password dialog and pass the entered password to the callback
                         new Handler(Looper.getMainLooper()).post(() -> {
                             showPasswordDialog(password -> {
                                 if (password != null && !password.isEmpty()) {
-                                    // Set the password for the encrypted ZIP file
-                                    //  zipFile.setPassword(password.toCharArray());
                                     zipPassword = password;
-                                    // Now proceed with reading the file headers
-                                    loadZipContents(zipFile);
+                                    try {
+                                        zipFile.setPassword(zipPassword.toCharArray());
+                                        loadZipContents(zipFile);
+                                    } catch (Exception e) {
+                                        new Handler(Looper.getMainLooper()).post(() -> {
+                                            spinner.setVisibility(View.GONE);
+                                            listener.onError("Incorrect password or failed to open ZIP.");
+                                        });
+                                    }
                                 } else {
-                                    // Handle the case where password is not provided or cancelled
-                                    new Handler(Looper.getMainLooper()).post(() -> {
-                                        spinner.setVisibility(View.GONE);
-                                        listener.onError("Password is required to open the ZIP file.");
-                                    });
+                                    spinner.setVisibility(View.GONE);
+                                    listener.onError("Password is required to open the ZIP file.");
                                 }
                             });
                         });
@@ -213,7 +196,6 @@ public class FilePickDialog extends DialogFragment {
                         // If no password is required, just load the contents
                         loadZipContents(zipFile);
                     }
-
                 } catch (IOException e) {
                     new Handler(Looper.getMainLooper()).post(() -> {
                         spinner.setVisibility(View.GONE);
@@ -221,10 +203,9 @@ public class FilePickDialog extends DialogFragment {
                     });
                 }
             } else {
-                // Regular file system logic
+                // Regular folder/file navigation logic
                 File folder = new File(current_path);
-                if (!folder.exists() || Objects.equals(current_path, "/storage")) {
-                    // Fallback logic for storage
+                if (!folder.exists() || current_path.equals("/storage")) {
                     if (storages.length == 1) {
                         current_path = Environment.getExternalStorageDirectory().getAbsolutePath();
                     } else {
@@ -234,13 +215,11 @@ public class FilePickDialog extends DialogFragment {
                     }
                 }
 
-                // Add parent folder logic
                 if (folder.getParentFile() != null) {
                     parentPath = folder.getParentFile().getAbsolutePath();
                     items.add(new Folder("..", parentPath, true));
                 }
 
-                // Add folder/file logic
                 File[] folders = folder.listFiles(file -> {
                     if (file.isDirectory() || (extensions == null || file.getName().endsWith(".zip"))) {
                         return true;
@@ -272,14 +251,12 @@ public class FilePickDialog extends DialogFragment {
                             current_path = item.path;
                             reload();
                         } else if (item.path.endsWith(".zip")) {
-                            zipParentPath = current_path; // Store current path as ZIP parent
-                            current_path = item.path; // Set ZIP as the current path
-                            isInZip = true; // Mark as inside a ZIP
+                            zipParentPath = current_path;
+                            current_path = item.path;
+                            isInZip = true;
                             reload();
                         } else {
                             prefs.edit().putString(LAST_READ_PATH, current_path).apply();
-                            // Log.e("FilePickDialog", "--------------current_path = "+current_path);
-                            //  Log.e("FilePickDialog", "-------------item_path = "+item.path);
                             if (current_path.endsWith("zip"))
                                 listener.onSelect(current_path + "/p=" + zipPassword + "/e=" + item.path.replace("/", ""));
                             else listener.onSelect(item.path);
@@ -300,63 +277,27 @@ public class FilePickDialog extends DialogFragment {
     private void loadZipContents(ZipFile zipFile) {
         try {
             List<FileHeader> headers = zipFile.getFileHeaders();
-
-            // Process the file headers (files inside the ZIP)
             for (FileHeader header : headers) {
                 if (!header.isDirectory()) {
-                    items.add(new Folder(
-                            header.getFileName(),
-                            header.getFileName(), // Relative path inside ZIP
-                            false,
-                            false // Not a directory inside the ZIP
-                    ));
+                    items.add(new Folder(header.getFileName(), header.getFileName(), false, false));
                 }
             }
-
-            // Update UI on the main thread
-            new Handler(Looper.getMainLooper()).post(() -> {
-                spinner.setVisibility(View.GONE);
-
-                // Notify the adapter of the new items
-                if (adapter == null) {
-                    adapter = new FolderAdapter(getContext(), items, new FolderAdapter.ClickListener() {
-                        @Override
-                        public void onClick(Folder item) {
-                            // Handle file/folder click actions
-                        }
-                    });
-
-                    recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                    recyclerView.setAdapter(adapter);
-                } else {
-                    adapter.notifyDataSetChanged();
-                }
-            });
         } catch (IOException e) {
-            new Handler(Looper.getMainLooper()).post(() -> {
-                spinner.setVisibility(View.GONE);
-                listener.onError("Failed to read ZIP file: " + e.getMessage());
-            });
+            new Handler(Looper.getMainLooper()).post(() -> listener.onError("Failed to read ZIP contents: " + e.getMessage()));
         }
     }
 
-
     private void showPasswordDialog(PasswordCallback callback) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Enter ZIP Password");
 
         final EditText passwordInput = new EditText(getContext());
         passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         builder.setView(passwordInput);
 
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            String password = passwordInput.getText().toString();
-            callback.onPasswordEntered(password);
-        });
+        builder.setPositiveButton("OK", (dialog, which) -> callback.onPasswordEntered(passwordInput.getText().toString()));
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
-            callback.onPasswordEntered(null); // Handle cancel
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> callback.onPasswordEntered(null));
 
         builder.show();
     }
@@ -365,10 +306,11 @@ public class FilePickDialog extends DialogFragment {
         void onPasswordEntered(String password);
     }
 
-
     public interface ImportListener {
         void onSelect(String path);
 
         void onError(String msg);
     }
 }
+
+

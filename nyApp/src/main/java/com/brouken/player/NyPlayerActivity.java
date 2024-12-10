@@ -75,7 +75,7 @@ public class NyPlayerActivity extends PlayerActivity {
         String path = NyFileUtil.getPath(this, mPrefs.mediaUri);
 
         DataSource.Factory encryptedFactory = null;
-        if (path.contains("_NY")) encryptedFactory = getEncryptedMediaSource(this, path);
+        if (path.contains("_NY") && !path.contains("htpp")) encryptedFactory = getEncryptedMediaSource(this, path);
 
         if (encryptedFactory != null)
             playerBuilder.setMediaSourceFactory(new DefaultMediaSourceFactory(encryptedFactory,extractorsFactory));

@@ -5,6 +5,7 @@ import static android.content.pm.PackageManager.FEATURE_EXPANDED_PICTURE_IN_PICT
 import static com.nytaiji.nybase.filePicker.MediaSelection.getMediaLinkDialog;
 import static com.nytaiji.nybase.httpShare.WifiShareUtil.getMessageHandler;
 import static com.nytaiji.nybase.network.NetworkServersDialog.getServerLink;
+import static com.nytaiji.nybase.network.NetworkServersDialog.setRange;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -1689,9 +1690,10 @@ public class PlayerActivity extends OldPermissionsActivity {
                         releasePlayer();
                         mPrefs.setPersistent(true);
                         String link = null;
-                        if (path.contains("zip") && !path.contains("http"))
-                            link = getServerLink(new NyHybrid(NyFileUtil.getLastSegmentFromString(path), path), getMessageHandler(PlayerActivity.this.findViewById(R.id.coordinatorLayout)));
-                        else {
+                        if (path.contains("zip") && !path.contains("http")) {
+                            setRange(true); //internal
+                            link = getServerLink(new NyHybrid(NyFileUtil.getLastSegmentFromString(path).replace("/", ""), path), getMessageHandler(PlayerActivity.this.findViewById(R.id.coordinatorLayout)));
+                        }else {
                             link = path;
                         }
                         Log.e("PlayerActivity", "--------------link2= "+link);
