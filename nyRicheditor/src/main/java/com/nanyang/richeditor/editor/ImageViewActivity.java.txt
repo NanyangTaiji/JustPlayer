@@ -1,0 +1,530 @@
+package com.nanyang.richeditor.editor;
+
+import static com.nytaiji.nybase.model.Constants.ENCRYPT_SKIP;
+import static com.nytaiji.nybase.model.Constants.KEY_IMAGE_FILL;
+import static com.nytaiji.nybase.model.Constants.MAIN_SETTINGS;
+import static com.nytaiji.nybase.utils.BitmapUtil.blur;
+import static com.nytaiji.nybase.utils.NyFileUtil.getFileNameWithoutExtFromPath;
+import static com.nytaiji.nybase.utils.SystemUtils.hideSystemUI;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.nanyang.richeditor.R;
+import com.nytaiji.nybase.crypt.AesHelper;
+import com.nytaiji.nybase.utils.BitmapUtil;
+import com.nytaiji.nybase.crypt.EncryptUtil;
+import com.nytaiji.nybase.utils.NormalProgressDialog;
+import com.nytaiji.nybase.utils.NyFileUtil;
+import com.nytaiji.nybase.utils.SystemUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.crypto.CipherInputStream;
+
+public class ImageViewActivity extends AppCompatActivity {
+
+    public static final String TAG = ImageViewActivity.class.getSimpleName();
+    //  private static String cacheFolder = Environment.getExternalStorageDirectory() + "/nytaiji/.cache/";
+
+    static boolean mAllowParentInterceptOnScaled = false;
+    ArrayList<String> fileList;
+    @SuppressLint("StaticFieldLeak")
+    static FrameLayout background;
+    static int imageCount;
+    int currentPage;
+    ViewPager mViewPager;
+    private static boolean NonStop = false;
+    private static boolean autoFill = true;
+    @SuppressLint("StaticFieldLeak")
+    private static Context context;
+    private static Bitmap finalBitmap;
+    //-------------//
+    private int mIndex;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        refresh(intent);
+    }
+
+    private void refresh(Intent intent) {
+        //  Intent intent=getIntent();
+        overridePendingTransition(0, 0);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(intent);
+    }
+
+
+    private void intentManage(Intent intent) {
+        fileList = intent.getStringArrayListExtra("FILE_LIST");
+        imageCount = fileList.size();
+        currentPage = getIntent().getIntExtra("FILE_POSITION", 0);
+        mIndex = getIntent().getIntExtra("index", currentPage);
+        setAdaptor(false);
+        //---
+
+    }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        context = this;
+
+        //--------
+        //  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        hideSystemUI(this);
+        SystemUtils.keepScreenOn(this);
+
+        SharedPreferences playerPrefs = getSharedPreferences(MAIN_SETTINGS, Context.MODE_PRIVATE);
+        autoFill = playerPrefs.getBoolean(KEY_IMAGE_FILL, true);
+
+
+        //-----------------
+        setContentView(R.layout.activity_image_view);
+
+        background = (FrameLayout) findViewById(R.id.backgroundPage);
+        mViewPager = (ViewPager) findViewById(R.id.viewPager);
+
+        mAllowParentInterceptOnScaled = true;
+        mViewPager.setOffscreenPageLimit(0);
+
+        //TODO ny
+     //   ViewPager.PageTransformer pageTransformer = new FlipVerticalTransformer(this);
+     //   mViewPager.setPageTransformer(true, pageTransformer);
+
+        //
+        intentManage(getIntent());
+
+        Runnable Update = new Runnable() {
+            public void run() {
+                if (currentPage == imageCount) {
+                    currentPage = 0;
+                }
+                mViewPager.setCurrentItem(currentPage, true);
+                currentPage++;
+            }
+        };
+
+        timing(new Handler(), Update, 1000, 4000);
+
+    }
+
+
+    private void setAdaptor(boolean shuffle) {
+        ArrayList<String> newList = new ArrayList<>(fileList);
+
+        if (fileList.size() > 1 && shuffle) {
+            //randomize the list
+            long seed = System.nanoTime();
+            //  Log.e(TAG, "shuffle");
+            Collections.shuffle(newList, new Random(seed));
+        }
+        //   Log.e(TAG, "newList:"+newList);
+
+        ZoomLayoutAdapter zoomLayoutAdapter = new ZoomLayoutAdapter(getSupportFragmentManager(), newList, mIndex);
+        mViewPager.setAdapter(zoomLayoutAdapter);
+        mViewPager.setCurrentItem(currentPage);
+    }
+
+
+    private void timing(final Handler h, final Runnable run, int delay, int period) {
+        Timer swipeTimer = new Timer();
+        swipeTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (NonStop && imageCount > 1) h.post(run);
+            }
+        }, delay, period);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        hideSystemUI(this);
+    }
+
+
+    //----------------------------------------
+
+    public static class ZoomLayoutAdapter extends FragmentStatePagerAdapter {
+        private final ArrayList<String> filePaths;
+        private final int mIndex;
+
+        public ZoomLayoutAdapter(FragmentManager fm, ArrayList<String> filePaths, int mIndex) {
+            super(fm);
+            this.filePaths = filePaths;
+            this.mIndex=mIndex;
+            // Log.e(TAG, "filePaths:" + filePaths.toString());
+        }
+
+        @NotNull
+        @Override
+        public Fragment getItem(int position) {
+
+            return ZoomLayoutFragment.newInstance(filePaths.get(position), position,mIndex );
+        }
+
+        @Override
+        public int getCount() {
+            return filePaths.size();
+        }
+    }
+
+
+    public static class ZoomLayoutFragment extends Fragment {
+        Serializable image_list;
+        int currentPosition;
+        int mIndex=0;
+        static boolean shuffle = false;
+
+        public static ZoomLayoutFragment newInstance(String filePath, int currentPosition, int index) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("IMAGE_PATH", filePath);
+            bundle.putInt("IMAGE_POSITION", currentPosition);
+            bundle.putInt("index", index);
+            ZoomLayoutFragment fragment = new ZoomLayoutFragment();
+            fragment.setArguments(bundle);
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            image_list = getArguments().getSerializable("IMAGE_PATH");
+            currentPosition = getArguments().getInt("IMAGE_POSITION");
+            mIndex = getArguments().getInt("index");
+        }
+
+        private static Bitmap ajustedBitmap = null;
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            finalBitmap = null;
+            View view = inflater.inflate(R.layout.imageview_scaled, container, false);
+            ImageView imageView = view.findViewById(R.id.imageViewScaled);
+            TextView mTextView = (TextView) view.findViewById(R.id.info);
+            ImageView slide = view.findViewById(R.id.slide);
+            if (imageCount == 1) slide.setImageResource(R.drawable.ic_back);
+            ImageView rotate = view.findViewById(R.id.rotate);
+            ImageView save = view.findViewById(R.id.save_rotate);
+
+            final String imagePath = image_list.toString();
+            String text = getFileNameWithoutExtFromPath(imagePath);
+            if (imageCount > 1) text = text + " (" + (currentPosition + 1) + "/" + imageCount + ")";
+            mTextView.setText(text);
+
+            if (autoFill && ajustedBitmap != null && NonStop && !imagePath.contains("http")) {//Bitmap back=scale(roateb,1.01f);
+                //background.setBackground(new BitmapDrawable(getResources(), nostalgic(roateb)));
+                // background.setBackground(new BitmapDrawable(getResources(), saturation(roateb,200)));
+                background.setBackground(new BitmapDrawable(getResources(), blur(getContext(), ajustedBitmap, 50)));
+            } else background.setBackground(null);
+
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
+            if (bitmapDrawable != null && !bitmapDrawable.getBitmap().isRecycled()) {
+                bitmapDrawable.getBitmap().recycle();
+            }
+
+            //--------------------Loading bitmap---------------
+            if (imagePath.contains("http")) {
+                String finalStr = imagePath.replace("/http:/", "http://");
+                //  GetImageFromHttp(finalStr, imageView);
+                new GetImageFromHttp(imageView).execute(finalStr);
+            } else GetImageFromFile(imagePath, imageView);
+
+            //--------------- Control-------------------
+            final int[] k = {0};
+
+            mTextView.setOnClickListener(view1 ->
+            {
+                shuffle = !shuffle;
+                ((ImageViewActivity) this.getActivity()).currentPage = 0;
+                ((ImageViewActivity) this.getActivity()).setAdaptor(shuffle);
+                Toast.makeText(context, "Images shuffled!", Toast.LENGTH_SHORT).show();
+            });
+
+
+            slide.setOnClickListener(view1 ->
+            {
+                //for one piece image, also serve as backpressed
+                NonStop = !NonStop;
+                if (imageCount == 1) EncryptUtil.getActivity(context).finish();
+            });
+
+            rotate.setOnClickListener(view1 ->
+            {
+                NonStop = false;
+                k[0]++;
+                ajustedBitmap = BitmapUtil.rotate(finalBitmap, -90 * k[0]);
+                //  float w = (float) ajustedBitmap.getWidth();
+                // float h = (float) ajustedBitmap.getHeight();
+                //  float aspectRatio = w / h;
+                //  Log.e(TAG, String.format(Locale.US, "Bitmap[ %.0f, %.0f ], aspectRatio: %.2f", w, h, aspectRatio));
+                // imageView.setImageAspectRatio(aspectRatio);
+                imageView.setImageBitmap(ajustedBitmap);
+                if (Math.floorMod(k[0],4)!=0) save.setVisibility(View.VISIBLE); else save.setVisibility(View.GONE);
+               // Toast.makeText(context, "Long press to save!", Toast.LENGTH_SHORT).show();
+            });
+
+
+            save.setOnClickListener(view1 ->
+            {
+              //  if (Math.floorMod(k[0],4)!=0){
+                String rotatePath =saveRotatedImageToFile(imagePath, null);
+                ajustedBitmap.recycle();
+                ajustedBitmap=null;
+                finalBitmap.recycle();
+                finalBitmap=null;
+                backToCallActivity(rotatePath);
+            //} EncryptUtil.getActivity(context).finish();
+            });
+
+
+            return view;
+        }
+
+        private void backToCallActivity(String rotatePath){
+            Intent intent = new Intent();
+            intent.putExtra("index", mIndex);
+            intent.putExtra("imagePath", rotatePath);
+            EncryptUtil.getActivity(context).setResult(Activity.RESULT_OK, intent);
+            EncryptUtil.getActivity(context).finish();
+        }
+
+
+        private String saveRotatedImageToFile(String imagePath, String passWord) {
+            String fileName = getFileNameWithoutExtFromPath(imagePath);
+            File savedPath;
+            boolean success = false;
+            if (passWord == null) passWord = EncryptUtil.getPasswordFromFileName(fileName);
+            if (passWord == null || passWord == "N") {
+                if (NyFileUtil.isOnline(imagePath))
+                    savedPath = new File(NyFileUtil.getEditDir(), fileName + "_r.jpg");
+                else {
+                    savedPath = new File(NyFileUtil.getParentPath(imagePath), fileName + "_r.jpg");
+                }
+                BitmapUtil.saveBitmap(savedPath.getAbsolutePath(), ajustedBitmap, Bitmap.CompressFormat.JPEG, 100);
+            } else {
+                File tempFile = new File(NyFileUtil.getCacheFolder(), "temp.jpg");
+                success = BitmapUtil.saveBitmap(tempFile.getAbsolutePath(), ajustedBitmap, Bitmap.CompressFormat.JPEG, 100);
+                savedPath = setRotateFile(imagePath, passWord);
+                if (success && EncryptUtil.StandardEncryptFile(context, tempFile, savedPath, passWord))
+                    tempFile.delete();
+                else Toast.makeText(context, "Rotated image fails! ", Toast.LENGTH_SHORT).show();
+            }
+            Log.e(TAG,savedPath.getAbsolutePath());
+            return savedPath.getAbsolutePath();
+
+        }
+
+        private File setRotateFile(String path, String passWord) {
+            String onlyFileName = getFileNameWithoutExtFromPath(path);
+          //  String ext = getFileExtension(path);
+            String nyx = "_NY" + passWord;
+            if (passWord.length() == 16) nyx = "_NY0";
+            if (onlyFileName.contains(nyx)) {
+                onlyFileName = onlyFileName.replace(nyx, "_r" + nyx);  //reset
+            } else onlyFileName = onlyFileName + "_r";
+            if (NyFileUtil.isOnline(path))
+                return new File(NyFileUtil.getEditDir(), onlyFileName + ".jpg");
+            else {
+                return new File(NyFileUtil.getParentPath(path), onlyFileName + ".jpg");
+            }
+        }
+
+        private void GetImageFromFile(String str, ImageView imageView) {
+            Bitmap bitmap = null;
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = true;
+            options.inJustDecodeBounds = true;
+
+            if (str.contains("tif")) {
+                File temp = new File(NyFileUtil.getCacheFolder(), "temp");
+                //    TiffBitmapFactory.Options tiffoptions = new TiffBitmapFactory.Options();
+                if (str.contains("_NY")) {
+                    String password = EncryptUtil.getPasswordFromFileName(str);
+                    EncryptUtil.AdvancedEncryptFile(getContext(), new File(str), temp, password, 0);
+                    bitmap = TiffBitmapFactory.decodeFile(temp/*, tiffoptions*/);
+                    temp.delete();
+                } else bitmap = TiffBitmapFactory.decodeFile(new File(str)/*, tiffoptions*/);
+
+            } else {
+                try {
+                    InputStream inputStream = new FileInputStream(new File(str));
+                    if (str.contains("_NY")) {
+                        String passWord = EncryptUtil.getPasswordFromFileName(str);
+
+                        EncryptUtil.CTRnoPadding ces = EncryptUtil.LevelCipherPackage(passWord);
+                        if (Integer.parseInt(passWord) > 5) {
+                            Log.e(TAG, "passWord " + passWord);
+                            inputStream.skip(ENCRYPT_SKIP);
+                            AesHelper.jumpToOffset(ces.cipher, ces.secretKeySpec, ces.ivParameterSpec, ENCRYPT_SKIP);
+                        }
+                        inputStream = new CipherInputStream(inputStream, ces.cipher);
+                    }
+                    bitmap = BitmapFactory.decodeStream(inputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap);
+                finalBitmap = bitmap;
+                ajustedBitmap = bitmap;
+            }
+            //processBitmap(bitmap, imageView);
+
+        }
+
+
+        @SuppressLint("StaticFieldLeak")
+        private static class GetImageFromHttp extends AsyncTask<String, Void, Bitmap> {
+            ImageView imageView;
+            String stringUrl;
+            Bitmap bitmap;
+            BitmapFactory.Options options;
+
+            public GetImageFromHttp(ImageView img) {
+                this.imageView = img;
+                options = new BitmapFactory.Options();
+                options.inScaled = true;
+                options.inJustDecodeBounds = true;
+                NormalProgressDialog.showLoading(context, "Online Image Loading!", false);
+            }
+
+            @Override
+            protected Bitmap doInBackground(String... url) {
+
+                stringUrl = url[0];
+                InputStream inputStream;
+                InputStream cipherInputStream;
+                try {
+                    inputStream = new URL(stringUrl).openStream();
+                    if (stringUrl.contains("_NY")) {
+                        String passWord = EncryptUtil.getPasswordFromFileName(stringUrl);
+
+                        EncryptUtil.CTRnoPadding ces = EncryptUtil.LevelCipherPackage(passWord);
+                        if (Integer.parseInt(passWord) > 5) {
+                            Log.e(TAG, "passWord " + passWord);
+                            inputStream.skip(ENCRYPT_SKIP);
+                            AesHelper.jumpToOffset(ces.cipher, ces.secretKeySpec, ces.ivParameterSpec, ENCRYPT_SKIP);
+                        }
+                        cipherInputStream = new CipherInputStream(inputStream, ces.cipher);
+                    } else cipherInputStream = inputStream;
+
+                    if (stringUrl.toLowerCase().contains("tif")) {
+                        File temp = new File(NyFileUtil.getCacheFolder(), "temp");
+                        FileOutputStream fileOutputStream = new FileOutputStream(temp);
+                        byte[] buffer = new byte[1096 * 1096];
+                        int bytesRead;
+                        while ((bytesRead = cipherInputStream.read(buffer)) != -1) {
+                            fileOutputStream.write(buffer, 0, bytesRead);
+                        }
+                        fileOutputStream.close();
+                        inputStream.close();
+                        cipherInputStream.close();
+                        TiffBitmapFactory.Options tiffoptions = new TiffBitmapFactory.Options();
+                        bitmap = TiffBitmapFactory.decodeFile(temp, tiffoptions);
+                        temp.delete();
+                    } else {
+                        bitmap = BitmapFactory.decodeStream(cipherInputStream);
+                        inputStream.close();
+                        cipherInputStream.close();
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, " IOException");
+                    e.printStackTrace();
+                }
+                return bitmap;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                super.onPostExecute(bitmap);
+                NormalProgressDialog.stopLoading();
+                if (bitmap != null) {
+                    imageView.setImageBitmap(bitmap);
+                    finalBitmap = bitmap;
+                    ajustedBitmap = bitmap;
+                }
+                //processBitmap(bitmap, imageView);
+                else Toast.makeText(context, "http bitmap null", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        private static void processBitmap(Bitmap bitmap, ImageView imageView) {
+            if (bitmap == null) return;
+            finalBitmap = bitmap;
+
+            float w = (float) bitmap.getWidth();
+            float h = (float) bitmap.getHeight();
+            float aspectRatio = w / h;
+            ajustedBitmap = bitmap;
+            //  Log.e(TAG, String.format(Locale.US, "Bitmap[ %.0f, %.0f ], aspectRatio: %.2f", w, h, aspectRatio));
+
+            if (autoFill && SystemUtils.isScreenLand(context) && aspectRatio < 1.0f) {
+                ajustedBitmap = BitmapUtil.rotate(bitmap, -270);
+                aspectRatio = 1 / aspectRatio;
+                //  Log.e(TAG, String.format(Locale.US, "Rotated Bitmap[ %.0f, %.0f ], aspectRatio: %.2f", w, h, aspectRatio));
+
+            } else if (autoFill && !SystemUtils.isScreenLand(context) && aspectRatio > 1.0f) {
+                ajustedBitmap = BitmapUtil.rotate(bitmap, -90);
+                aspectRatio = 1 / aspectRatio;
+                //  Log.e(TAG, String.format(Locale.US, "Rotated Bitmap[ %.0f, %.0f ], aspectRatio: %.2f", w, h, aspectRatio));
+
+            }
+
+            //  imageView.setImageAspectRatio(aspectRatio);
+            imageView.setImageBitmap(ajustedBitmap);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        fileList.clear();
+        NyFileUtil.cleanCache(this);
+       // finishAndRemoveTask();
+    }
+
+}

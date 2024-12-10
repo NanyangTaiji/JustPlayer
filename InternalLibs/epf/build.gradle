@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 
 group='com.nytaiji.library'
 android {
-    compileSdk 33
+    compileSdk 35
     namespace 'com.nytaiji.epf'
 
     defaultConfig {
         minSdkVersion 21
-        targetSdk 31
+        targetSdkVersion 34
         //  versionCode VERSION_CODE as int
       //  versionName VERSION_NAME
     }
@@ -29,5 +29,5 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }

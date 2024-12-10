@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 
 
 android {
-    compileSdk 33
+    compileSdk 35
     namespace 'com.nytaiji.exoplayer'
     android.buildFeatures.buildConfig true
     defaultConfig {
         minSdk 26
-        targetSdk 33
+        targetSdkVersion 34
         versionCode 1
         versionName '1.0.1'
         ndk {

@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 
 
 android {
-    compileSdk 33
+    compileSdk 35
     namespace 'com.nytaiji.drawview'
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 33
+        targetSdkVersion 34
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
@@ -23,16 +23,16 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.2'
-    implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-    implementation 'androidx.exifinterface:exifinterface:1.3.4'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'
+    implementation 'androidx.exifinterface:exifinterface:1.3.7'
     implementation 'androidx.cardview:cardview:1.0.0'
 
     // THIRD PARTY
     api 'com.squareup.picasso:picasso:2.71828'
     api 'jp.wasabeef:picasso-transformations:2.2.1'
     api 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.12.0'
   //  implementation 'com.wonderkiln:camerakit:0.12.6'
     implementation project(':InternalLibs:nyBase')
 }

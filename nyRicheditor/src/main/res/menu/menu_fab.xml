@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="@layout/fragment_show_database">
+    <item
+        android:id="@+id/fab_create_file"
+        android:icon="@drawable/fab_add"
+        android:orderInCategory="100"
+        android:title="@string/new_folder"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/fab_create_folder"
+        android:icon="@drawable/fab_add"
+        android:orderInCategory="100"
+        android:title="@string/new_folder"
+        app:showAsAction="never" />
+
+
+</menu>

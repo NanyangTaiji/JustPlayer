@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"
+        android:background="?attr/colorPrimary"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp">
+
+
+        <LinearLayout
+            android:id="@+id/main_frame"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/iv_action_back"
+                android:layout_width="40dp"
+                android:layout_height="35dp"
+                android:padding="8dp"
+                app:srcCompat="@drawable/ic_back"
+                app:tint="@android:color/white" />
+
+
+            <ImageView
+                android:id="@+id/pen_tool"
+                android:layout_width="@dimen/tool_size"
+                android:layout_height="@dimen/tool_size"
+                android:scaleType="center"
+                android:clickable="true"
+                app:srcCompat="@drawable/ic_pen"
+                app:tint="@android:color/white"
+
+                android:contentDescription="@string/tool"/>
+
+            <ImageView
+                android:id="@+id/iv_action_clear"
+                android:layout_width="@dimen/tool_size"
+                android:layout_height="@dimen/tool_size"
+                android:scaleType="center"
+                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
+                android:clickable="true"
+                app:srcCompat="@drawable/ic_eraser"
+                app:tint="@android:color/white"
+                android:contentDescription="@string/tool"/>
+
+
+            <HorizontalScrollView
+                android:id="@+id/hsv_action_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp">
+
+
+                <LinearLayout
+                    android:id="@+id/action_bar_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/iv_insert_text"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_add_richtext"
+                        app:tint="@android:color/white" />
+
+
+                    <ImageView
+                        android:id="@+id/iv_action_open"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/icons8_file_submodule_48"
+                        app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/iv_action_list"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_content"
+                        app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/iv_youtube"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/icons8_code_file_48"
+                        app:tint="@android:color/white" />
+
+
+                    <ImageView
+                        android:id="@+id/iv_action_save"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_menu_save"
+                        app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/iv_text_undo"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_undo"
+                        app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/iv_text_redo"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_redo"
+                        app:tint="@android:color/white" />
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

@@ -1,0 +1,93 @@
+package com.nanyang.richeditor.database;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+
+import com.nanyang.richeditor.R;
+
+import android.util.SparseArray;
+
+public class Category extends Database {
+
+    public static final int THEME_RED = 0;
+    public static final int THEME_PINK = 1;
+    public static final int THEME_PURPLE = 2;
+    public static final int THEME_BLUE = 3;
+    public static final int THEME_CYAN = 4;
+    public static final int THEME_TEAL = 5;
+    public static final int THEME_GREEN = 6;
+    public static final int THEME_AMBER = 7;
+    public static final int THEME_ORANGE = 8;
+
+    public int counter;
+    public String sortBy;  // Sorting criteria
+
+    public Category() {
+        super();
+    }
+
+    /**
+     * Instantiates a new object of Category class using the data retrieved from database.
+     *
+     * @param cursor cursor object returned from a database query
+     */
+    public Category(Cursor cursor) {
+        super(cursor);
+        this.theme = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_THEME));
+        this.counter = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_COUNTER));
+        this.sortBy = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_REMARK));
+    }
+
+    /**
+     * @return ContentValue object to be saved or updated
+     */
+    @Override
+    public ContentValues getContentValues() {
+        ContentValues values = new ContentValues();
+        if (id == Database.NEW_MODEL_ID) {
+            values.put(DbHelper.COLUMN_TYPE, TYPE_CATEGORY);
+            values.put(DbHelper.COLUMN_DATE, creationDate);
+            values.put(DbHelper.COLUMN_MODIFICATION, creationDate); // Initialize modifyDate
+            values.put(DbHelper.COLUMN_COUNTER, counter);
+            values.put(DbHelper.COLUMN_ARCHIVED, isArchived);
+        } else {
+            modifyDate = System.currentTimeMillis(); // Update modifyDate
+        }
+        values.put(DbHelper.COLUMN_TITLE, title);
+        values.put(DbHelper.COLUMN_KEYWORDS, keywords);
+        values.put(DbHelper.COLUMN_EXTRA, secureKey);
+        values.put(DbHelper.COLUMN_REMARK, sortBy);
+        values.put(DbHelper.COLUMN_THEME, theme);
+        values.put(DbHelper.COLUMN_MODIFICATION, modifyDate); // Ensure modifyDate is set
+        values.put(DbHelper.COLUMN_PROTECT, isProtected ? 1 : 0);
+        values.put(DbHelper.COLUMN_STARED, isStard ? 1 : 0);
+        return values;
+    }
+    @Override
+    public boolean equals(Object o) {
+        return o != null && o instanceof Category && id == (((Category) o).id);
+    }
+    private static final SparseArray<Integer> THEME_STYLE_MAP = new SparseArray<>();
+
+    static {
+        THEME_STYLE_MAP.put(THEME_RED, R.style.AppThemeRed);
+        THEME_STYLE_MAP.put(THEME_PINK, R.style.AppThemePink);
+        THEME_STYLE_MAP.put(THEME_PURPLE, R.style.AppThemePurple);
+        THEME_STYLE_MAP.put(THEME_BLUE, R.style.AppThemeBlue);
+        THEME_STYLE_MAP.put(THEME_CYAN, R.style.AppThemeCyan);
+        THEME_STYLE_MAP.put(THEME_TEAL, R.style.AppThemeTeal);
+        THEME_STYLE_MAP.put(THEME_GREEN, R.style.AppThemeGreen);
+        THEME_STYLE_MAP.put(THEME_AMBER, R.style.AppThemeAmber);
+        THEME_STYLE_MAP.put(THEME_ORANGE, R.style.AppThemeOrange);
+    }
+
+    /**
+     * @param theme the color id of category
+     * @return the style of theme
+     */
+    public static int getStyle(int theme) {
+        Integer style = THEME_STYLE_MAP.get(theme);
+        return style != null ? style : R.style.JsonViewTheme;
+    }
+
+}

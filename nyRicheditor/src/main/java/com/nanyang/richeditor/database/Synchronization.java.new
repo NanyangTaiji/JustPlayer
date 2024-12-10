@@ -1,0 +1,121 @@
+package com.nanyang.richeditor.database;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.fragment.app.FragmentActivity;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class Synchronization {
+
+    private OpenHelper localDb;
+    private OpenHelper remoteDb;
+
+    public Synchronization(OpenHelper localDb, OpenHelper remoteDb) {
+        this.localDb = localDb;
+        this.remoteDb = remoteDb;
+    }
+
+    public void synchronize(Context context) {
+        SQLiteDatabase localDatabase = null;
+        SQLiteDatabase remoteDatabase = null;
+        long lastSyncTimestamp = localDb.getLastSyncTimestamp();
+
+        try {
+            localDatabase = localDb.getWritableDatabase();
+            remoteDatabase = remoteDb.getWritableDatabase();
+
+            // Use a single timestamp for both local and remote databases
+            List<Note> localChanges = localDb.getModifiedNotes(lastSyncTimestamp);
+            List<Note> cloudChanges = remoteDb.getModifiedNotes(lastSyncTimestamp);
+
+            Map<Long, Note> localMap = localChanges.stream().collect(Collectors.toMap(Note::getId, note -> note));
+            Map<Long, Note> cloudMap = cloudChanges.stream().collect(Collectors.toMap(Note::getId, note -> note));
+
+            List<Note> updatesForLocal = new ArrayList<>();
+            List<Note> updatesForCloud = new ArrayList<>();
+
+            // Merge changes and resolve conflicts
+            for (Note cloudNote : cloudChanges) {
+                Note localNote = localMap.get(cloudNote.getId());
+                if (localNote == null || cloudNote.modifyDate > localNote.modifyDate) {
+                    updatesForLocal.add(cloudNote);
+                }
+            }
+
+            for (Note localNote : localChanges) {
+                Note cloudNote = cloudMap.get(localNote.getId());
+                if (cloudNote == null || localNote.modifyDate > cloudNote.modifyDate) {
+                    updatesForCloud.add(localNote);
+                }
+            }
+
+            // Update databases
+            if (!updatesForLocal.isEmpty()) {
+                localDb.updateRecords(updatesForLocal);
+            }
+
+            if (!updatesForCloud.isEmpty()) {
+                remoteDb.updateRecords(updatesForCloud);
+            }
+
+            // Update the last sync timestamp
+            long newSyncTimestamp = System.currentTimeMillis();
+            localDb.setLastSyncTimestamp(newSyncTimestamp);
+            remoteDb.setLastSyncTimestamp(newSyncTimestamp);
+
+            ((FragmentActivity) context).runOnUiThread(() -> {
+                Toast.makeText(context, "First synchronized: " + updatesForLocal.size() + "\n"
+                        + "Second synchronized: " + updatesForCloud.size(), Toast.LENGTH_LONG).show();
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (localDatabase != null && localDatabase.isOpen()) {
+                localDatabase.close();
+            }
+            if (remoteDatabase != null && remoteDatabase.isOpen()) {
+                remoteDatabase.close();
+            }
+        }
+    }
+
+
+    public static void synchronize(Context context, String dbLocal, String dbRemote) {
+
+        // Initialize database helpers
+        OpenHelper localOpenHelper = new OpenHelper(context, dbLocal);
+        OpenHelper cloudOpenHelper = new OpenHelper(context, dbRemote);
+        new Thread() {
+            @Override
+            public void run() {
+                // Synchronize databases
+                Synchronization synchronization = new Synchronization(localOpenHelper, cloudOpenHelper);
+                synchronization.synchronize(context);
+                File journalFile1 = new File(dbLocal+ "-journal");
+                File journalFile2 = new File(dbRemote+ "-journal");
+                if (journalFile1.exists() && journalFile1.length() == 0) {
+                    boolean deleted1 = journalFile1.delete();
+                    if (!deleted1) {
+                        Log.e("DatabaseCleanup", "Failed to delete the zero-byte journal file.");
+                    }
+                }
+                if (journalFile2.exists() && journalFile2.length() == 0) {
+                    boolean deleted2 = journalFile2.delete();
+                    if (!deleted2) {
+                        Log.e("DatabaseCleanup", "Failed to delete the zero-byte journal file.");
+                    }
+                }
+            }
+        }.start();
+    }
+}
+

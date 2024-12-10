@@ -71,7 +71,7 @@ dependencies {
 
     // Cast dependencies
     implementation 'androidx.mediarouter:mediarouter:1.7.0'
-    implementation 'com.google.android.gms:play-services-cast-framework:21.3.0'
+    implementation 'com.google.android.gms:play-services-cast-framework:22.0.0'
 
     implementation "androidx.lifecycle:lifecycle-process:2.8.7"
     implementation 'androidx.core:core:1.15.0' // Use the latest version

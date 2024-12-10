@@ -1,0 +1,855 @@
+package com.nanyang.richeditor.editor;
+
+import static com.nytaiji.online.OnlineLinkUtil.simpleExtraction;
+import static com.nytaiji.online.model.Constants.EXTRACT_ONLY;
+
+import android.animation.LayoutTransition;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.text.TextUtils;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+import com.hdl.calendardialog.CalendarView;
+import com.hdl.calendardialog.CalendarViewDialog;
+import com.nanyang.richeditor.R;
+import com.nanyang.richeditor.memento.nyFormatter;
+import com.nanyang.richeditor.util.ImageUtils;
+import com.nytaiji.drawview.views.AdvDrawView;
+import com.nytaiji.extra.view.DragLinearLayout;
+import com.nytaiji.online.NyFileUtil;
+import com.nytaiji.online.OnlineLinkUtil;
+import com.nytaiji.online.encrypt.EncryptUtil;
+import com.nytaiji.online.model.NyVideo;
+import com.nytaiji.online.util.nyBitmapTask;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * 作者:  Logan on 2017/11/30.
+ * 邮箱:  490636907@qq.com
+ * 描述:  可编辑富文本
+ */
+
+public class EditorToolContainer extends ScrollView {
+
+    public static final int EDIT_PADDING = 0; // edittext常规padding是10dp
+    public static String sIndex = "1";
+    // public static String DEFAULTHTML = "<p><div style=\"text-align:center;\"><b>(" + sIndex + ")</b></div><hr><div style=\"text-align:left;\"<br><br></p>";
+    public static String DEFAULTHTML = "<p><hr><div style=\"text-align:left;\"<br><br><br></p>";
+    public static String EMPTYTHTML = "<p><hr></p>";
+    public static String htmlContent = DEFAULTHTML;
+
+    private int viewTagIndex = 1; // 新生的view都会打一个tag，对每个view来说，这个tag是唯一的。
+    public DragLinearLayout dragLinearLayout; // 这个是所有子view的容器，scrollView内部的唯一一个ViewGroup
+    private final LayoutInflater inflater;
+    private final OnKeyListener keyListener; // 所有EditText的软键盘监听器
+
+    public RichToolEditor lastFocusEdit; // 最近被聚焦的EditText
+    private final LinearLayout.LayoutParams editParam;
+    private Context mContext;
+
+    private final OnClickListener btnItemCloseListener; // 图片右上角红叉按钮监听器
+    private final OnClickListener btnImgClickListener;
+    private FocusChangeCallback focusChangeCallback;
+    private final OnFocusChangeListener focusListener; // 所有EditText的焦点监听listener
+    private EditText eTitle, eDate, eRemark;
+    private long dateTimeMills = 0L;
+    public ArrayList<String> keywords = new ArrayList<>();
+    private KeywordCallback keywordCallback;
+    private LinearLayout eKeywords;
+    private ProgressDialog mDialog;
+
+    //-----------
+    public void setFocusChangeCallback(FocusChangeCallback focusChangeCallback) {
+        this.focusChangeCallback = focusChangeCallback;
+    }
+
+    //-------------
+    public EditorToolContainer(Context context) {
+        this(context, null);
+    }
+
+    public EditorToolContainer(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public void setContext(Context context) {
+        mContext = context;
+    }
+
+    public EditorToolContainer(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        inflater = LayoutInflater.from(context);
+        this.mContext = context;
+
+        // 1. 初始化allLayout
+        dragLinearLayout = new DragLinearLayout(context);
+        dragLinearLayout.setOrientation(LinearLayout.VERTICAL);
+        dragLinearLayout.setContainerScrollView(this);
+        //子控件拖拽监听
+        dragLinearLayout.setOnViewSwapListener(new DragLinearLayout.OnViewSwapListener() {
+            @Override
+            public void onSwap(View firstView, int firstPosition, View secondView, int secondPosition) {
+                //移除FirstView
+                dragLinearLayout.removeDragView(firstView);
+                //移除SecondView
+                if (secondView instanceof RelativeLayout) {
+                    if ("image".equals(secondView.getTag(R.id.nyRichEditor))) {
+                        dragLinearLayout.removeDragView(secondView);
+                    } else {
+                        dragLinearLayout.removeView(secondView);
+                    }
+                } else {
+                    dragLinearLayout.removeView(secondView);
+                }
+                if (firstPosition >= secondPosition) {
+                    //底下的View往上拖,先添加firstView
+                    dragLinearLayout.addDragView(firstView, firstView.findViewById(R.id.move), secondPosition);
+                    //添加SecondView
+                    if (secondView instanceof RelativeLayout) {
+                        if ("image".equals(secondView.getTag(R.id.nyRichEditor))) {
+                            dragLinearLayout.addDragView(secondView, secondView.findViewById(R.id.move), firstPosition);
+                        } else {
+                            dragLinearLayout.addDragView(secondView, secondView.findViewById(R.id.move), firstPosition);
+                        }
+                    } else {
+                        dragLinearLayout.addDragView(secondView, firstPosition);
+                    }
+                } else {
+                    //上面往底下拖,先添加SecondView
+                    if (secondView instanceof RelativeLayout) {
+                        if ("image".equals(secondView.getTag(R.id.nyRichEditor))) {
+                            dragLinearLayout.addDragView(secondView, secondView.findViewById(R.id.move), firstPosition);
+                        } else {
+                            dragLinearLayout.addDragView(secondView, secondView.findViewById(R.id.move), firstPosition);
+                        }
+                    } else {
+                        dragLinearLayout.addDragView(secondView, firstPosition);
+                    }
+                    dragLinearLayout.addDragView(firstView, firstView.findViewById(R.id.move), secondPosition);
+                }
+
+
+            }
+        });
+        //allLayout.setBackgroundColor(Color.WHITE);
+        setupLayoutTransitions();
+        LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        dragLinearLayout.setPadding(20, 15, 20, 15);//设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
+        addView(dragLinearLayout, layoutParams);
+
+        // 2. 初始化键盘退格监听, 主要用来处理点击回删按钮时，view的一些列合并操作
+        keyListener = new OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN
+                        && event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
+                    EditText edit = (EditText) v;
+                    onBackspacePress(edit);
+                }
+                return false;
+            }
+        };
+
+        // 叉掉处理
+        btnItemCloseListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //  FrameLayout view = (FrameLayout) v.getParent();
+                RelativeLayout parentView = (RelativeLayout) v.getParent();
+                onItemCloseClick(parentView);
+            }
+        };
+
+        btnImgClickListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //点击图片
+                RelativeLayout parentView = (RelativeLayout) v.getParent();
+                goToImageView(parentView);
+            }
+        };
+
+        focusListener = new OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                Log.e("Editorcontainer", "focus changed "+v.getId());
+                if (hasFocus) {
+                    lastFocusEdit = (RichToolEditor) v;
+                    if (focusChangeCallback != null) focusChangeCallback.onFocusChanged(hasFocus);
+                }
+            }
+        };
+
+
+        editParam = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        createTop(EDIT_PADDING);
+
+        //
+        final RelativeLayout firstEdit = createRichText(DEFAULTHTML, dip2px(context, EDIT_PADDING));
+        dragLinearLayout.addDragView(firstEdit, editParam);
+        lastFocusEdit = firstEdit.findViewById(R.id.editor);
+        lastFocusEdit.focusEditor();
+
+        setEditable(true);
+    }
+
+    private void goToImageView(RelativeLayout parentView) {
+        int index = dragLinearLayout.indexOfChild(parentView);
+        DataImageView childAt = (DataImageView) parentView.getChildAt(0);
+        String path = childAt.getAbsolutePath();
+        ImageUtils.imageProcess(mContext, path, index);
+    }
+
+
+    /**
+     * 初始化transition动画
+     */
+    private void setupLayoutTransitions() {
+        // 只在图片View添加或remove时，触发transition动画
+        LayoutTransition transitioner = new LayoutTransition();
+        dragLinearLayout.setLayoutTransition(transitioner);
+        transitioner.addTransitionListener(new LayoutTransition.TransitionListener() {
+            @Override
+            public void startTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType) {
+            }
+
+            @Override
+            public void endTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType) {
+                transition.isRunning();
+            }
+        });
+        transitioner.setDuration(300);
+    }
+
+    public int dip2px(Context context, float dipValue) {
+        float m = context.getResources().getDisplayMetrics().density;
+        return (int) (dipValue * m + 0.5f);
+    }
+
+    /**
+     *
+     */
+
+    public int getLastRichtextIndex() {
+        int available = -1;
+        int num = dragLinearLayout.getChildCount();
+        Log.e("MixedContainer", "dragLinearLayout.getChildCount()=" + num);
+
+        if (num == 1) return available;
+        for (int index = 1; index < num; index++) { //start index 1 to skip head
+            View itemView = dragLinearLayout.getChildAt(index);
+            if ("richtext".equals(itemView.getTag(R.id.nyRichEditor))) available = index;
+
+        }
+        return available;
+    }
+
+
+    public void setEditable(boolean toShow) {
+        int[] viewIds = new int[]{
+                R.id.editor_title,
+                R.id.txt_remark,
+                R.id.editor_keywords,
+                R.id.editor_date
+        };
+
+        for (int viewId : viewIds) {
+            findViewById(viewId).setEnabled(toShow);
+        }
+
+        int num = dragLinearLayout.getChildCount();
+
+        if (num == 1) return;
+        for (int index = 1; index < num; index++) { //start index 1 to skip head
+            View itemView = dragLinearLayout.getChildAt(index);
+            if ("richtext".equals(itemView.getTag(R.id.nyRichEditor))) {
+                NyRichEditor nyRichEditor = itemView.findViewById(R.id.editor);
+                //TODO the next is critical to disable popup of softkeyboard
+                nyRichEditor.setInputEnabled(toShow);
+                nyRichEditor.setEditorBackgroundColor(toShow ? Color.LTGRAY : Color.TRANSPARENT);
+                //----------------------------------------
+             /*   nyRichEditor.setOnClickImageListener(new NyRichEditor.OnClickImageListener() {
+                    @Override
+                    public void onClick(String url) {
+                        //not working
+                        //  nyRichEditor.loadRichEditorCode(nyRichEditor.getHtml());
+                        //TODO ny
+                        Log.e("MixedContainer", "image clicked");
+                    }
+                });*/
+            }
+
+        }
+
+    }
+
+    public void setMovable(boolean toShow) {
+        int num = dragLinearLayout.getChildCount();
+        if (num == 1) return;
+        for (int index = 1; index < num; index++) { //start index 1 to skip head
+            View itemView = dragLinearLayout.getChildAt(index);
+            if (itemView.findViewById(R.id.close) != null)
+                itemView.findViewById(R.id.close).setVisibility(toShow ? VISIBLE : GONE);
+            if (itemView.findViewById(R.id.move) != null)
+                itemView.findViewById(R.id.move).setVisibility(toShow ? VISIBLE : GONE);
+        }
+    }
+
+    /**
+     * 处理软键盘backSpace回退事件
+     *
+     * @param editTxt 光标所在的文本输入框
+     */
+    private void onBackspacePress(EditText editTxt) {
+        int startSelection = editTxt.getSelectionStart();
+        // 只有在光标已经顶到文本输入框的最前方，再判定是否删除之前的图片，或两个View合并
+        if (startSelection == 0) {
+            int editIndex = dragLinearLayout.indexOfChild(editTxt);
+            View preView = dragLinearLayout.getChildAt(editIndex - 1); // 如果editIndex-1<0,
+            // 则返回的是null
+            if (null != preView) { //preview is always relativelayout
+                if (preView instanceof RelativeLayout) {
+                    onItemCloseClick(preView);
+                }
+            }
+        }
+    }
+
+    /**
+     * 处理视频叉掉的点击事件
+     *
+     * @param view 整个video对应的relativeLayout view
+     *             删除类型 0代表backspace删除 1代表按红叉按钮删除
+     */
+    private void onItemCloseClick(View view) {
+        dragLinearLayout.removeView(view);
+    }
+
+    public void clearAllLayout() {
+        int num = dragLinearLayout.getChildCount();
+        for (int index = 0; index < num; index++) {
+            View itemView = dragLinearLayout.getChildAt(index);
+            if ("image".equals(itemView.getTag(R.id.nyRichEditor))) {
+                DataImageView item = itemView.findViewById(R.id.edit_imageView);
+                item.setBitmap(null);
+            } else if ("video".equals(itemView.getTag(R.id.nyRichEditor))) {
+                DataVideoView item = itemView.findViewById(R.id.edit_videoView);
+                item.getPlayer().release();
+                item.getPlayer().destroy();
+            } else if ("richtext".equals(itemView.getTag(R.id.nyRichEditor))) {
+                NyRichEditor item = itemView.findViewById(R.id.editor);
+                //   item.clearLocalRichEditorCache();
+                item.removeFormat();
+                item.removeAllViews();
+            }
+        }
+
+        dragLinearLayout.removeAllViews();
+    }
+
+    public int getNextIndex() {
+        return dragLinearLayout.getChildCount();
+    }
+
+    public View getKeywordView() {
+        return findViewById(R.id.cmd_keywords);
+    }
+    //--------------------------------EditText---------------------
+
+    /**
+     * 在特定位置插入EditText
+     **/
+
+    public void addRichTextAtIndex(final int index, String html) {
+        RelativeLayout layout = createRichText(html, EDIT_PADDING);
+        ImageView move = layout.findViewById(R.id.move);
+        dragLinearLayout.addDragView(layout, move, index);
+    }
+
+    /**
+     * 生成文本输入框
+     */
+    //  private String htmlContent = "<p>#nytaiji<br><br><br><br><br><br>@nytaiji</p>";
+    public RelativeLayout createRichText(String html, int paddingTop) {
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_richtext, null);
+        layout.setTag(viewTagIndex++);
+        layout.setTag(R.id.nyRichEditor, "richtext");
+        int editNormalPadding = 0;
+        layout.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+
+        final ImageView close = layout.findViewById(R.id.close);
+        close.setOnClickListener(btnItemCloseListener);
+
+        final RichToolEditor editText = layout.findViewById(R.id.editor);
+        editText.setTag(layout.getTag());
+        editText.setOnFocusChangeListener(focusListener);
+        editText.setOnKeyListener(keyListener);
+        lastFocusEdit = editText;
+        if (html != null) lastFocusEdit.setText(html);
+        else lastFocusEdit.setText(DEFAULTHTML);
+        lastFocusEdit.focusEditor();
+        return layout;
+    }
+
+
+    public void addEmptyAtIndex(final int index) {
+        RelativeLayout layout = createEmptyRichText(EDIT_PADDING);
+        ImageView move = layout.findViewById(R.id.move);
+        dragLinearLayout.addDragView(layout, move, index);
+    }
+
+    public RelativeLayout createEmptyRichText(int paddingTop) {
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_richtext, null);
+        layout.setTag(viewTagIndex++);
+        layout.setTag(R.id.nyRichEditor, "richtext");
+        int editNormalPadding = 0;
+        layout.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+
+        final ImageView close = layout.findViewById(R.id.close);
+        close.setOnClickListener(btnItemCloseListener);
+
+        final RichToolEditor editText = layout.findViewById(R.id.editor);
+        editText.setTag(layout.getTag());
+        editText.setOnFocusChangeListener(focusListener);
+        editText.setOnKeyListener(keyListener);
+        lastFocusEdit = editText;
+        lastFocusEdit.setText(EMPTYTHTML);
+        lastFocusEdit.focusEditor();
+        return layout;
+    }
+
+
+  /*  public void addHtmlAtIndex(final int index, String html) {
+        RelativeLayout layout = createHtml(html, EDIT_PADDING);
+        ImageView move = layout.findViewById(R.id.move);
+        dragLinearLayout.addDragView(layout, move, index);
+    }
+
+    /**
+     * 生成文本输入框
+     */
+    //  private String htmlContent = "<p>#nytaiji<br><br><br><br><br><br>@nytaiji</p>";
+  /*  public RelativeLayout createHtml(String html, int paddingTop) {
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_richtext, null);
+        layout.setTag(viewTagIndex++);
+        layout.setTag(R.id.nyRichEditor, "richtext");
+        int editNormalPadding = 0;
+        layout.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+
+        final ImageView close = layout.findViewById(R.id.close);
+        close.setOnClickListener(btnItemCloseListener);
+
+        final NyRichEditor editText = layout.findViewById(R.id.editor);
+        editText.setTag(layout.getTag());
+        editText.setOnFocusChangeListener(focusListener);
+        editText.setOnKeyListener(keyListener);
+        lastFocusEdit = editText;
+        if (html != null) lastFocusEdit.loadRichEditorCode(html);
+        else lastFocusEdit.setHtml(DEFAULTHTML);
+        lastFocusEdit.focusEditor();
+        return layout;
+    }*/
+
+    //---------------------------------------------image-----------------------------------------------
+
+    /**
+     * 插入一张图片
+     */
+    public void insertImage(String imagePath, String passWord) {
+        addImageViewAtIndex(getNextIndex(), imagePath, passWord);
+        hideKeyBoard();
+    }
+
+    /**
+     * 在特定位置添加ImageView
+     */
+    public void addImageViewAtIndex(final int index, String imagePath, String password) {
+        final RelativeLayout imageLayout = (RelativeLayout) inflater.inflate(R.layout.edit_imageview, null);
+
+        imageLayout.setTag(viewTagIndex++);
+        imageLayout.setTag(R.id.nyRichEditor, "image");
+
+        // final ImageView openMenu = layout.findViewById(R.id.iv_open);
+        DataImageView imageView = imageLayout.findViewById(R.id.edit_imageView);
+
+        if (NyFileUtil.isOnline(imagePath)) {
+            //  Log.e("RichEditorContainer", "imagePath "+imagePath);
+            //progress dialog to be cancelled inside GetImageFromHttp
+            new NyBitmapTask.GetImageFromHttp(imageView).execute(imagePath, password);
+        } else NyBitmapTask.GetImageFromLocal(mContext, imageView, imagePath, password);
+
+        imageView.setAbsolutePath(imagePath);//保留这句，后面保存数据会用
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
+
+        int imageHeight = dragLinearLayout.getWidth() * 3 / 5;
+        // 调整图片高度，这里是否有必要，如果出现微博长图，可能会很难看
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, imageHeight);//设置图片固定高度
+        //
+        lp.bottomMargin = 10;
+        lp.leftMargin = 15;
+        lp.rightMargin = 15;
+        imageView.setLayoutParams(lp);
+
+        ImageView move = imageLayout.findViewById(R.id.move);
+        imageView.setOnClickListener(btnImgClickListener);
+        ImageView close = imageLayout.findViewById(R.id.close);
+        close.setTag(imageLayout.getTag());
+        // close.setOnClickListener(btnItemCloseListener);
+        close.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageView.setBitmap(null);
+                onItemCloseClick(imageLayout);
+            }
+        });
+
+        dragLinearLayout.addDragView(imageLayout, move, index);
+    }
+
+
+    /**
+     * 清除特定位置的View
+     */
+    public void removeViewAtIndex(int index) {
+        View childAt = dragLinearLayout.getChildAt(index);
+        // if (childAt.getTag(0).toString().contains("image")) childAt.
+        onItemCloseClick(childAt);
+    }
+
+    //---------------------------------------------video-----------------------------------------------
+
+    /**
+     * 插入一个视频
+     */
+
+    public void insertVideo(String videoPath, String firstImgUrl) {
+        addVideoViewAtIndex(getNextIndex(), videoPath, firstImgUrl);
+        hideKeyBoard();
+    }
+
+    /**
+     * 在特定位置添加VideoView
+     */
+    public void addVideoViewAtIndex(final int index, String videoPath, String firstImgUrl) {
+        RelativeLayout videoLayout =
+                (RelativeLayout) inflater.inflate(R.layout.edit_videoview, null);
+        //不允许视频拖拽
+        // layout.setOnDragListener(null);
+        videoLayout.setTag(viewTagIndex++);
+        videoLayout.setTag(R.id.nyRichEditor, "video");
+        DataVideoView videoView = videoLayout.findViewById(R.id.edit_videoView);
+
+        int imageHeight = dragLinearLayout.getWidth() * 9 / 16;
+        //16:9
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, imageHeight);//设置视频固定高度
+        lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+        lp.bottomMargin = 10;
+        lp.leftMargin = 15;
+        lp.rightMargin = 15;
+        videoView.setLayoutParams(lp);
+        ImageView videoMove = videoLayout.findViewById(R.id.move);
+        View close = videoLayout.findViewById(R.id.close);
+        close.setTag(videoLayout.getTag());
+        //  closeView.setOnClickListener(btnItemCloseListener);
+        close.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                videoView.getPlayer().release();
+                videoView.getPlayer().destroy();
+                videoView.release();
+                onItemCloseClick(videoLayout);
+            }
+        });
+        dragLinearLayout.addDragView(videoLayout, videoMove, index);
+
+        videoView.setAbsolutePath(videoPath);
+        if (!NyFileUtil.isOnline(videoPath)) {
+            videoView.setVideoUrl(videoPath);
+            videoView.setTitle(simpleExtraction(videoPath));
+        } else {
+            NyVideo nyVideo = new NyVideo();
+            nyVideo.setPath(videoPath);
+            OnlineLinkUtil onlineLinkUtil = new OnlineLinkUtil();
+            onlineLinkUtil.init(mContext, "guest");
+            onlineLinkUtil.onlinePlayEnquiry(nyVideo, EXTRACT_ONLY, new OnlineLinkUtil.onlineCallback() {
+                @Override
+                public void onlineCallback(Map<String, Object> params) {
+                    String url = params.get("filePath").toString();
+                    String fileName = simpleExtraction(url);
+                    try {
+                        url = URLDecoder.decode(url, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    if (params.get("fileName") != null && !TextUtils.isEmpty(params.get("fileName").toString())) {
+                        //  Log.e(TAG, "fileName "+fileName);
+                        fileName = Objects.requireNonNull(params.get("fileName")).toString();
+                    }
+                    videoView.setVideoUrl(url);
+                    videoView.setTitle(fileName);
+                    videoView.setPassWord(EncryptUtil.getPasswordFromFileName(fileName));
+                }
+            });
+        }
+    }
+
+
+    public long getDate() {
+        return nyFormatter.getDateLong(eDate.getText().toString().trim());
+    }
+
+    //---------------------------------TopJson----------------------------------------------------
+    private RelativeLayout topJson;
+
+    public void createTop(int paddingTop) {
+        topJson = (RelativeLayout) inflater.inflate(R.layout.edit_top, null);
+        topJson.setTag(viewTagIndex++);
+        topJson.setTag(R.id.nyRichEditor, "topJson");
+        int editNormalPadding = 0;
+        topJson.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+
+        eDate = topJson.findViewById(R.id.editor_date);
+        setDate(System.currentTimeMillis());
+        eDate.setLongClickable(true);
+        eDate.setOnLongClickListener(new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(new Date(getDate()));
+                // List<Long> markDay = new ArrayList<>();
+                //  markDay.add(getDate());
+                CalendarViewDialog.getInstance()
+                        .init(getContext())
+                        // .addMarks(markDay)
+                        .setCalendar(calendar)
+                        .setSelectedDay(getDate())
+                        .setLimitMonth(false)
+
+                        .show(new CalendarView.OnCalendarClickListener() {
+                            @Override
+                            public void onDayClick(Calendar daySelectedCalendar) {
+                                dateTimeMills = daySelectedCalendar.getTimeInMillis();
+                                setDate(dateTimeMills);
+                                CalendarViewDialog.getInstance().close();
+                                //  Toast.makeText(MainActivity.this, "选择的天数 : " + DateUtils.getDateTime(daySelectedCalendar.getTimeInMillis()), Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onDayNotMarkClick(Calendar daySelectedCalendar) {
+                                dateTimeMills = daySelectedCalendar.getTimeInMillis();
+                                setDate(dateTimeMills);
+                                CalendarViewDialog.getInstance().close();
+                            }
+                        });
+                return true;
+            }
+        });
+        eTitle = topJson.findViewById(R.id.editor_title);
+        eRemark = topJson.findViewById(R.id.txt_remark);
+        eKeywords = topJson.findViewById(R.id.editor_keywords);
+        dragLinearLayout.addDragView(topJson, editParam);
+
+        //  RelativeLayout bottom = (RelativeLayout) inflater.inflate(R.layout.edit_bottom, null);
+        //  dragLinearLayout.addDragView(bottom, editParam);
+
+    }
+
+    public void setTitle(String input) {
+        eTitle.setText(input);
+    }
+
+    public String getTitle() {
+        return eTitle.getText().toString();
+    }
+
+    public void setDate(String input) {
+        eDate.setText(input);
+    }
+
+    public void setDate(long dateTimeMills) {
+        this.dateTimeMills = dateTimeMills;
+        eDate.setText(nyFormatter.getDateString(dateTimeMills));
+    }
+
+
+    public void setKeywordCallback(KeywordCallback keywordCallback) {
+        this.keywordCallback = keywordCallback;
+    }
+
+    public void setKeywords(ArrayList<String> keywords, boolean toAppend) {
+        if (toAppend)
+            this.keywords.addAll(keywords);
+        else this.keywords = keywords;
+
+        Set<String> set = new LinkedHashSet<String>(this.keywords);
+        this.keywords.clear();
+        this.keywords.addAll(set);
+
+        eKeywords.removeAllViews();
+        int hPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
+        int vPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+
+        for (String key : this.keywords) {
+            TextView textView = new TextView(mContext);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            textView.setText(key);
+            textView.setLayoutParams(params);
+            textView.setTextSize(15F);
+            textView.setTextColor(Color.WHITE);
+            //SetPadding (int left, int top, int right, int bottom);
+            textView.setGravity(View.TEXT_ALIGNMENT_CENTER);
+            textView.setPadding(hPadding, vPadding, hPadding, 0);
+            textView.setShadowLayer(2F, 2F, 2F, Color.LTGRAY);
+            //     textView.setBackgroundResource(R.drawable.btn_colored_material);
+            textView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (keywordCallback != null)
+                        keywordCallback.keywordReturn(textView.getText().toString());
+                }
+            });
+            eKeywords.addView(textView);
+        }
+    }
+
+    public ArrayList<String> getKeywords() {
+        return keywords;
+    }
+
+    public void setRemark(String input) {
+        eRemark.setText(input);
+    }
+
+    public String getRemark() {
+        return eRemark.getText().toString();
+    }
+
+
+    //---------------------------------------free drawing--------------
+    public RelativeLayout createDrawing(String imagePath, int paddingTop) {
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_draw, null);
+        layout.setTag(viewTagIndex++);
+        layout.setTag(R.id.nyRichEditor, "richtext");
+        int editNormalPadding = 0;
+        layout.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+
+        final ImageView close = layout.findViewById(R.id.close);
+        close.setOnClickListener(btnItemCloseListener);
+
+        final AdvDrawView drawing = layout.findViewById(R.id.drawing);
+        drawing.setTag(layout.getTag());
+        //  drawing.setOnFocusChangeListener(focusListener);
+        drawing.setOnKeyListener(keyListener);
+        return layout;
+    }
+
+    public void addDrawingAtIndex(final int index, String imagePath) {
+        RelativeLayout layout = createDrawing(imagePath, EDIT_PADDING);
+        ImageView move = layout.findViewById(R.id.move);
+        dragLinearLayout.addDragView(layout, move, index);
+    }
+
+
+    //---------------------------------------------Other-----------------------------------------------
+
+    /**
+     * 隐藏小键盘
+     */
+    public void hideKeyBoard() {
+        InputMethodManager imm = (InputMethodManager) getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(lastFocusEdit.getWindowToken(), 0);
+        }
+    }
+
+
+    public List<String> exportEditString() {
+        List<String> editList = new ArrayList<>();
+        int num = dragLinearLayout.getChildCount();
+        for (int index = 0; index < num; index++) {
+            View itemView = dragLinearLayout.getChildAt(index);
+            if ("topJson".equals(itemView.getTag(R.id.nyRichEditor))) {
+                editList.add("remark:" + eRemark.getText().toString());
+            } else if ("image".equals(itemView.getTag(R.id.nyRichEditor))) {
+                DataImageView item = itemView.findViewById(R.id.edit_imageView);
+                editList.add("image:" + item.getAbsolutePath());
+            } else if ("video".equals(itemView.getTag(R.id.nyRichEditor))) {
+                DataVideoView item = itemView.findViewById(R.id.edit_videoView);
+                editList.add("video:" + item.getAbsolutePath());
+            } else if ("richtext".equals(itemView.getTag(R.id.nyRichEditor))) {
+                NyRichEditor nyRichEditor = itemView.findViewById(R.id.editor);
+                editList.add("richtext:" + nyRichEditor.getHtml());
+                // webView.evaluateJavascript("(function(){return document.getElementsByTagName('html')[0].innerHTML;})();",
+              /*  richEditor.evaluateJavascript("(function(){return window.document.body.outerHTML;})();",
+                        new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String html) {
+                                html = html.replace("\\u003C", "<");
+                                html = html.substring(html.lastIndexOf("contenteditable=") + 25, html.lastIndexOf("note-statusbar") - 32);
+                                editList.add("richtext:" + html);
+                            }
+                        });*/
+            }
+        }
+        return editList;
+    }
+
+    public List<String> exportRichText() {
+        List<String> editList = new ArrayList<>();
+        int num = dragLinearLayout.getChildCount();
+        for (int index = 0; index < num; index++) {
+            View itemView = dragLinearLayout.getChildAt(index);
+            if ("richtext".equals(itemView.getTag(R.id.nyRichEditor))) {
+                NyRichEditor nyRichEditor = itemView.findViewById(R.id.editor);
+                editList.add("richtext:" + nyRichEditor.getHtml());
+                // webView.evaluateJavascript("(function(){return document.getElementsByTagName('html')[0].innerHTML;})();",
+              /*  richEditor.evaluateJavascript("(function(){return window.document.body.outerHTML;})();",
+                        new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String html) {
+                                html = html.replace("\\u003C", "<");
+                                html = html.substring(html.lastIndexOf("contenteditable=") + 25, html.lastIndexOf("note-statusbar") - 32);
+                                editList.add("richtext:" + html);
+                            }
+                        });*/
+            }
+        }
+        return editList;
+    }
+
+    public static interface KeywordCallback {
+        void keywordReturn(String key);
+    }
+
+}
+
+
+

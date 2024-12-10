@@ -1,0 +1,175 @@
+<resources>
+
+    <style name="ActionImageView">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/btn_colored_material</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:tint">@color/tintColor</item>
+    </style>
+
+    <!-- Base application theme. -->
+    <style name="JsonViewTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+
+    <style name="select_picture_dialog" parent="android:Theme.Holo.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">@color/pure_transparent</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:buttonStyle">@style/select_picture_dialog_button_style</item>
+
+    </style>
+
+    <style name="select_picture_dialog_button_style">
+        <item name="android:background">@drawable/dialog_button_bg_sl</item>
+    </style>
+
+    <!-- memento-->
+    <declare-styleable name="Fab">
+        <attr name="fabColor" format="reference" />
+        <attr name="emptyIcon" format="reference" />
+    </declare-styleable>
+
+    <style name="MementoTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="fabColor">@drawable/fab</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <item name="emptyIcon">@drawable/ic_empty_categories</item>
+    </style>
+
+    <style name="AppThemeRed" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/red</item>
+        <item name="colorPrimaryDark">@color/red_dark</item>
+        <item name="colorAccent">@color/red</item>
+        <item name="fabColor">@drawable/fab_red</item>
+        <item name="emptyIcon">@drawable/empty_red</item>
+    </style>
+
+    <style name="AppThemePink" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/pink</item>
+        <item name="colorPrimaryDark">@color/pink_dark</item>
+        <item name="colorAccent">@color/pink</item>
+        <item name="fabColor">@drawable/fab_pink</item>
+        <item name="emptyIcon">@drawable/empty_pink</item>
+    </style>
+
+    <style name="AppThemePurple" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/purple</item>
+        <item name="colorPrimaryDark">@color/purple_dark</item>
+        <item name="colorAccent">@color/purple</item>
+        <item name="fabColor">@drawable/fab_purple</item>
+        <item name="emptyIcon">@drawable/empty_purple</item>
+    </style>
+
+    <style name="AppThemeBlue" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/blue</item>
+        <item name="colorPrimaryDark">@color/blue_dark</item>
+        <item name="colorAccent">@color/blue</item>
+        <item name="fabColor">@drawable/fab_blue</item>
+        <item name="emptyIcon">@drawable/empty_blue</item>
+    </style>
+
+    <style name="AppThemeCyan" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/cyan</item>
+        <item name="colorPrimaryDark">@color/cyan_dark</item>
+        <item name="colorAccent">@color/cyan</item>
+        <item name="fabColor">@drawable/fab_cyan</item>
+        <item name="emptyIcon">@drawable/empty_cyan</item>
+    </style>
+
+    <style name="AppThemeTeal" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorPrimaryDark">@color/teal_dark</item>
+        <item name="colorAccent">@color/teal</item>
+        <item name="fabColor">@drawable/fab_teal</item>
+        <item name="emptyIcon">@drawable/empty_teal</item>
+    </style>
+
+    <style name="AppThemeGreen" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorPrimaryDark">@color/green_dark</item>
+        <item name="colorAccent">@color/green</item>
+        <item name="fabColor">@drawable/fab_green</item>
+        <item name="emptyIcon">@drawable/empty_green</item>
+    </style>
+
+    <style name="AppThemeAmber" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/amber</item>
+        <item name="colorPrimaryDark">@color/amber_dark</item>
+        <item name="colorAccent">@color/amber</item>
+        <item name="fabColor">@drawable/fab_amber</item>
+        <item name="emptyIcon">@drawable/empty_amber</item>
+    </style>
+
+    <style name="AppThemeOrange" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/orange</item>
+        <item name="colorPrimaryDark">@color/orange_dark</item>
+        <item name="colorAccent">@color/orange</item>
+        <item name="fabColor">@drawable/fab_orange</item>
+        <item name="emptyIcon">@drawable/empty_orange</item>
+    </style>
+    <!--                               -->
+    <style name="show_notice" parent="android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+
+    </style>
+
+    <style name="Theme.Summernote" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="actionBarStyle">@style/ActionBar</item>
+        <item name="android:textViewStyle">@style/TextView</item>
+        <item name="windowActionBarOverlay">true</item>
+        <item name="drawerArrowStyle">@style/ActionBar.ArrowToggle</item>
+    </style>
+
+    <style name="TextView" parent="android:Widget.TextView">
+        <item name="android:textDirection">locale</item>
+    </style>
+
+    <style name="ActionBar" parent="Widget.AppCompat.Light.ActionBar">
+        <item name="titleTextStyle">@style/ActionBar.Text</item>
+    </style>
+    <style name="ActionBar.Text" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="ActionBar.ArrowToggle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">@color/white</item>
+    </style>
+
+    <!--
+    Base application theme for TxtEditor API 21+. This theme completely
+    replaces AppBaseTheme from BOTH res/values/styles.xml and
+    res/values-v11/styles.xml on API 21+ devices.
+-->
+    <style name="AppLightTheme" parent="android:Theme.Material.Light.DarkActionBar">
+        <!-- API 21 theme customizations can go here. -->
+    </style>
+
+    <style name="AppDarkTheme" parent="android:Theme.Material">
+        <!-- API 21 theme customizations can go here. -->
+    </style>
+
+    <style name="AppBlackTheme" parent="android:Theme.Material">
+        <!-- API 21 theme customizations can go here. -->
+    </style>
+
+    <style name="AppRetroTheme" parent="android:Theme.Material">
+        <!-- API 21 theme customizations can go here. -->
+    </style>
+
+</resources>

@@ -1,0 +1,332 @@
+package com.nanyang.richeditor.database;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DbHelper extends SQLiteOpenHelper {
+	private static final int VERSION = 3;
+
+	public static final String TABLE_NOTES = "notes";
+	public static final String TABLE_UNDO = "undo";
+	public static final String TABLE_SYNC = "SyncMetadata";
+	public static final String POSITION = "position";
+	public static final String COLUMN_ID = "_id";
+	public static final String COLUMN_TITLE = "_title";
+	public static final String COLUMN_KEYWORDS = "_keywords";
+	public static final String COLUMN_REFERENCE = "_reference";
+	public static final String COLUMN_REMARK = "_remark";
+	public static final String COLUMN_BODY = "_body";
+	public static final String COLUMN_TYPE = "_type";
+	public static final String COLUMN_DATE = "_date";
+	public static final String COLUMN_MODIFICATION = "_modification";
+	public static final String COLUMN_ARCHIVED = "_archived";
+	public static final String COLUMN_STARED = "_stared";
+	public static final String COLUMN_THEME = "_theme";
+	public static final String COLUMN_COUNTER = "_counter";
+	public static final String COLUMN_PARENT_ID = "_parent";
+	public static final String COLUMN_EXTRA = "_extra";
+	public static final String COLUMN_SQL = "_sql";
+	public static final String COLUMN_PROTECT = "_protected";
+
+	public static final String LAST_SYNC_TIMESTAMP = "lastSyncTimestamp";
+
+	public static final String COLUMN_KEY = "key";
+	public static final String COLUMN_VALUE = "value";
+
+	public DbHelper(Context context, String dbName) {
+		super(context, dbName, null, VERSION);
+		//Log.e("DbHelper", "create with" +dbName);
+	}
+
+	@Override
+	public void onCreate(SQLiteDatabase db) {
+		createTables(db);
+		createTriggers(db);
+		initializeSyncMetadata(db);
+	}
+
+	private void createTables(SQLiteDatabase db) {
+		String createNotesTable = "CREATE TABLE IF NOT EXISTS " + TABLE_NOTES + " (" +
+				COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+				COLUMN_PARENT_ID + " INTEGER DEFAULT -1, " +
+				COLUMN_TITLE + " TEXT DEFAULT '', " +
+				COLUMN_KEYWORDS + " TEXT DEFAULT '', " +
+				COLUMN_REFERENCE + " TEXT DEFAULT '', " +
+				COLUMN_REMARK + " TEXT DEFAULT '', " +
+				COLUMN_BODY + " TEXT DEFAULT '', " +
+				COLUMN_TYPE + " INTEGER DEFAULT 0, " +
+				COLUMN_ARCHIVED + " INTEGER DEFAULT 0, " +
+				COLUMN_PROTECT + " INTEGER DEFAULT 0, " +
+				COLUMN_STARED + " INTEGER DEFAULT 0, " +
+				COLUMN_THEME + " INTEGER DEFAULT 0, " +
+				COLUMN_COUNTER + " INTEGER DEFAULT 0, " +
+				COLUMN_DATE + " TEXT DEFAULT '', " +
+				COLUMN_MODIFICATION + " TEXT DEFAULT '', " +
+				COLUMN_EXTRA + " TEXT DEFAULT ''" +
+				")";
+		db.execSQL(createNotesTable);
+
+		String createUndoTable = "CREATE TABLE IF NOT EXISTS " + TABLE_UNDO + " (" +
+				COLUMN_SQL + " TEXT" +
+				")";
+		db.execSQL(createUndoTable);
+
+		String createSyncMetadataTable = "CREATE TABLE IF NOT EXISTS " + TABLE_SYNC + " (" +
+				COLUMN_KEY + " TEXT PRIMARY KEY, " +
+				COLUMN_VALUE + " TEXT" +
+				")";
+		db.execSQL(createSyncMetadataTable);
+	}
+
+	private void createTriggers(SQLiteDatabase db) {
+		String createDeleteTrigger = "CREATE TRIGGER IF NOT EXISTS _t1_dn BEFORE DELETE ON " + TABLE_NOTES + " BEGIN " +
+				"INSERT INTO " + TABLE_UNDO + " (" + COLUMN_SQL + ") " +
+				"VALUES (" +
+				"'INSERT INTO " + TABLE_NOTES + " (" +
+				COLUMN_ID + ", " +
+				COLUMN_PARENT_ID + ", " +
+				COLUMN_TITLE + ", " +
+				COLUMN_KEYWORDS + ", " +
+				COLUMN_REFERENCE + ", " +
+				COLUMN_REMARK + ", " +
+				COLUMN_BODY + ", " +
+				COLUMN_TYPE + ", " +
+				COLUMN_ARCHIVED + ", " +
+				COLUMN_PROTECT + ", " +
+				COLUMN_STARED + ", " +
+				COLUMN_THEME + ", " +
+				COLUMN_COUNTER + ", " +
+				COLUMN_DATE + ", " +
+				COLUMN_MODIFICATION + ", " +
+				COLUMN_EXTRA + ") VALUES (' || " +
+				"old." + COLUMN_ID + " || ', ' || " +
+				"old." + COLUMN_PARENT_ID + " || ', ' || " +
+				"quote(old." + COLUMN_TITLE + ") || ', ' || " +
+				"quote(old." + COLUMN_KEYWORDS + ") || ', ' || " +
+				"quote(old." + COLUMN_REFERENCE + ") || ', ' || " +
+				"quote(old." + COLUMN_REMARK + ") || ', ' || " +
+				"quote(old." + COLUMN_BODY + ") || ', ' || " +
+				"old." + COLUMN_TYPE + " || ', ' || " +
+				"old." + COLUMN_ARCHIVED + " || ', ' || " +
+				"old." + COLUMN_PROTECT + " || ', ' || " +
+				"old." + COLUMN_STARED + " || ', ' || " +
+				"old." + COLUMN_THEME + " || ', ' || " +
+				"old." + COLUMN_COUNTER + " || ', ' || " +
+				"quote(old." + COLUMN_DATE + ") || ', ' || " +
+				"quote(old." + COLUMN_MODIFICATION + ") || ', ' || " +
+				"quote(old." + COLUMN_EXTRA + ") || ')'); " +
+				"END";
+		db.execSQL(createDeleteTrigger);
+	}
+
+	private void initializeSyncMetadata(SQLiteDatabase db) {
+		Log.e("DbHelper", "initializeSyncMetadata");
+		String query = "SELECT COUNT(*) FROM " + TABLE_SYNC + " WHERE " + COLUMN_KEY + " = ?";
+		Cursor cursor = db.rawQuery(query, new String[]{LAST_SYNC_TIMESTAMP});
+		if (cursor != null) {
+			if (cursor.moveToFirst() && cursor.getInt(0) == 0) {
+				ContentValues values = new ContentValues();
+				values.put(COLUMN_KEY, LAST_SYNC_TIMESTAMP);
+				values.put(COLUMN_VALUE, String.valueOf(System.currentTimeMillis()));
+				db.insert(TABLE_SYNC, null, values);
+			}
+			cursor.close();
+		}
+	}
+
+	@Override
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		if (oldVersion < 2) {
+			String alterTable = "ALTER TABLE " + TABLE_NOTES + " ADD COLUMN " + COLUMN_MODIFICATION + " TEXT DEFAULT ''";
+			db.execSQL(alterTable);
+
+			String updateModifyDate = "UPDATE " + TABLE_NOTES + " SET " + COLUMN_MODIFICATION + " = " + COLUMN_DATE;
+			db.execSQL(updateModifyDate);
+		}
+		if (oldVersion < 3) {
+			String createSyncMetadataTable = "CREATE TABLE IF NOT EXISTS " + TABLE_SYNC + " (" +
+					COLUMN_KEY + " TEXT PRIMARY KEY, " +
+					COLUMN_VALUE + " TEXT" +
+					")";
+			db.execSQL(createSyncMetadataTable);
+			initializeSyncMetadata(db);
+		}
+	}
+
+	public void saveToJson(FileOutputStream fos) throws Exception {
+		SQLiteDatabase db = getReadableDatabase();
+
+		Cursor cursorNotes = null;
+		Cursor cursorMetadata = null;
+
+		try {
+			cursorNotes = db.query(TABLE_NOTES, null, null, null, null, null, null);
+			cursorMetadata = db.query(TABLE_SYNC, null, null, null, null, null, null);
+
+			JSONObject jsonBackup = new JSONObject();
+			JSONArray notesArray = new JSONArray();
+			JSONArray metadataArray = new JSONArray();
+
+			if (cursorNotes != null && cursorNotes.moveToFirst()) {
+				do {
+					JSONObject note = new JSONObject();
+					note.put(COLUMN_ID, cursorNotes.getLong(cursorNotes.getColumnIndex(COLUMN_ID)));
+					note.put(COLUMN_TITLE, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_TITLE)));
+					note.put(COLUMN_KEYWORDS, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_KEYWORDS)));
+					note.put(COLUMN_REFERENCE, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_REFERENCE)));
+					note.put(COLUMN_REMARK, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_REMARK)));
+					note.put(COLUMN_BODY, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_BODY)));
+					note.put(COLUMN_TYPE, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_TYPE)));
+					note.put(COLUMN_DATE, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_DATE)));
+					note.put(COLUMN_MODIFICATION, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_MODIFICATION)));
+					note.put(COLUMN_ARCHIVED, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_ARCHIVED)));
+					note.put(COLUMN_PROTECT, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_PROTECT)));
+					note.put(COLUMN_STARED, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_STARED)));
+					note.put(COLUMN_THEME, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_THEME)));
+					note.put(COLUMN_COUNTER, cursorNotes.getInt(cursorNotes.getColumnIndex(COLUMN_COUNTER)));
+					note.put(COLUMN_PARENT_ID, cursorNotes.getLong(cursorNotes.getColumnIndex(COLUMN_PARENT_ID)));
+					note.put(COLUMN_EXTRA, cursorNotes.getString(cursorNotes.getColumnIndex(COLUMN_EXTRA)));
+					notesArray.put(note);
+				} while (cursorNotes.moveToNext());
+			}
+
+			if (cursorMetadata == null || !cursorMetadata.moveToFirst()) {
+				Log.e("DbHelper", "cursorMetadata ==null");
+				if (cursorMetadata != null) {
+					cursorMetadata.close();
+				}
+				initializeSyncMetadata(db);
+				cursorMetadata = db.query(TABLE_SYNC, null, null, null, null, null, null);
+			}
+
+			if (cursorMetadata != null && cursorMetadata.moveToFirst()) {
+				Log.e("DbHelper", "cursorMetadata != null");
+				do {
+					JSONObject metadata = new JSONObject();
+					metadata.put(COLUMN_KEY, cursorMetadata.getString(cursorMetadata.getColumnIndex(COLUMN_KEY)));
+					metadata.put(COLUMN_VALUE, cursorMetadata.getString(cursorMetadata.getColumnIndex(COLUMN_VALUE)));
+					metadataArray.put(metadata);
+				} while (cursorMetadata.moveToNext());
+			}
+
+			jsonBackup.put(TABLE_NOTES, notesArray);
+			jsonBackup.put(TABLE_SYNC, metadataArray);
+
+			fos.write(jsonBackup.toString().getBytes(StandardCharsets.UTF_8));
+		} finally {
+			if (cursorNotes != null) {
+				cursorNotes.close();
+			}
+			if (cursorMetadata != null) {
+				cursorMetadata.close();
+			}
+			db.close();
+		}
+	}
+
+	// Placeholder methods and additional logic...
+
+	public List<Note> getModifiedNotes(long sinceTimestamp) {
+		List<Note> modifiedRecords = new ArrayList<>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		String selection = COLUMN_MODIFICATION + " > ?";
+		String[] selectionArgs = {String.valueOf(sinceTimestamp)};
+
+		Cursor cursor = db.query(TABLE_NOTES, null, selection, selectionArgs, null, null, COLUMN_MODIFICATION);
+
+		if (cursor != null) {
+			while (cursor.moveToNext()) {
+				Note note = new Note(cursor);
+				modifiedRecords.add(note);
+			}
+			cursor.close();
+		}
+		return modifiedRecords;
+	}
+
+	public void updateRecords(List<Note> notes) {
+		// Implementation to update records in the database
+	}
+
+	public String getMetadataValue(String key) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.query(TABLE_SYNC, new String[]{COLUMN_VALUE}, COLUMN_KEY + "=?",
+				new String[]{key}, null, null, null);
+
+		if (cursor != null && cursor.moveToFirst()) {
+			String value = cursor.getString(cursor.getColumnIndex(COLUMN_VALUE));
+			cursor.close();
+			return value;
+		}
+
+		if (cursor != null) cursor.close();
+		return null;
+	}
+
+	public void setMetadataValue(String key, String value) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(COLUMN_KEY, key);
+		contentValues.put(COLUMN_VALUE, value);
+
+		db.insertWithOnConflict(TABLE_SYNC, null, contentValues, SQLiteDatabase.CONFLICT_REPLACE);
+	}
+
+	public long getLastSyncTimestamp() {
+		String value = getMetadataValue(LAST_SYNC_TIMESTAMP);
+		return value != null ? Long.parseLong(value) : 0;
+	}
+
+	public void setLastSyncTimestamp(long timestamp) {
+		setMetadataValue(LAST_SYNC_TIMESTAMP, String.valueOf(timestamp));
+	}
+}
+
+
+	/*public List<Note> getModifiedRecords(long sinceTimestamp) {
+		List<Note> modifiedRecords = new ArrayList<>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		String selection = COLUMN_MODIFICATION + " > ?";
+		String[] selectionArgs = { String.valueOf(sinceTimestamp) };
+
+		Cursor cursor = db.query(TABLE_NOTES, null, selection, selectionArgs, null, null, COLUMN_MODIFICATION);
+
+		if (cursor != null) {
+			while (cursor.moveToNext()) {
+				Note note = new Note();
+				note.setId(cursor.getLong(cursor.getColumnIndex(COLUMN_ID)));
+				note.setParentId(cursor.getLong(cursor.getColumnIndex(COLUMN_PARENT_ID)));
+				note.setTitle(cursor.getString(cursor.getColumnIndex(COLUMN_TITLE)));
+				note.setKeywords(cursor.getString(cursor.getColumnIndex(COLUMN_KEYWORDS)));
+				note.setReference(cursor.getString(cursor.getColumnIndex(COLUMN_REFERENCE)));
+				note.setRemark(cursor.getString(cursor.getColumnIndex(COLUMN_REMARK)));
+				note.setBody(cursor.getString(cursor.getColumnIndex(COLUMN_BODY)));
+				note.setType(cursor.getInt(cursor.getColumnIndex(COLUMN_TYPE)));
+				note.setArchived(cursor.getInt(cursor.getColumnIndex(COLUMN_ARCHIVED)));
+				note.setProtect(cursor.getInt(cursor.getColumnIndex(COLUMN_PROTECT)));
+				note.setStared(cursor.getInt(cursor.getColumnIndex(COLUMN_STARED)));
+				note.setTheme(cursor.getInt(cursor.getColumnIndex(COLUMN_THEME)));
+				note.setCounter(cursor.getInt(cursor.getColumnIndex(COLUMN_COUNTER)));
+				note.setDate(cursor.getString(cursor.getColumnIndex(COLUMN_DATE)));
+				note.setModification(cursor.getString(cursor.getColumnIndex(COLUMN_MODIFICATION)));
+				note.setExtra(cursor.getString(cursor.getColumnIndex(COLUMN_EXTRA)));
+
+				modifiedRecords.add(note);
+			}
+			cursor.close();
+		}
+		return modifiedRecords;
+	}*/
+

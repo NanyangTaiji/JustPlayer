@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="0px"
+        android:layout_height="0px"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        tools:ignore="UselessLeaf" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/item_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/title"
+            android:textColor="@color/main_text"
+            android:textColorHint="@color/hint_text"
+            android:textSize="@dimen/medium_text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/category_keyword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/keywords"
+            android:textColor="@color/main_text"
+            android:textColorHint="@color/hint_text"
+            android:textSize="@dimen/medium_text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:weightSum="7">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_weight="5"
+            android:text="@string/choose_a_color"
+            android:textColor="@color/secondary_text"
+            android:textSize="@dimen/small_text" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/c_switch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:checked="false"
+            android:hint="Lock" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/theme_red"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_red"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_pink"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/circle_pink"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_purple"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_purple"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/theme_blue"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_blue"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_cyan"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/circle_cyan"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_teal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_teal"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/theme_green"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_green"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_amber"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/circle_amber"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+        <ImageView
+            android:id="@+id/theme_orange"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_orange"
+            android:contentDescription="@string/theme"
+            android:scaleType="center" />
+
+    </LinearLayout>
+
+</LinearLayout>

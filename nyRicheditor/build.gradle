@@ -1,0 +1,133 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdk 35
+    namespace 'com.nanyang.richeditor'
+    android.buildFeatures.buildConfig true
+
+
+    packagingOptions {
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/armeabi/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/mips/libc++_shared.so'
+        pickFirst 'lib/mips64/libc++_shared.so'
+    }
+    defaultConfig {
+        minSdk 26
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        applicationId "com.nanyang.richeditor"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+
+        buildConfigField "long", "BUILT", System.currentTimeMillis() + "L"
+    }
+
+    //TODO 2021-12-27
+    configurations {
+        implementation.exclude group: 'jp.co.cyberagent.android.gpuimage'
+    }
+
+    buildTypes {
+        debug {
+            multiDexEnabled true
+            minifyEnabled false
+            shrinkResources false
+            ext.enableCrashlytics = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+        release {
+            multiDexEnabled true
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+    }
+
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    ndkVersion '23.1.7779620'
+
+    lintOptions {
+        checkReleaseBuilds false
+        //If you want to continue even if errors found use following line
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    //  implementation 'com.lzy.widget:imagepicker:0.5.5'
+
+    implementation 'org.jsoup:jsoup:1.17.2'
+
+
+    implementation project(':InternalLibs:nyBase')
+    implementation project(':InternalLibs:zoomGroup')
+ //   implementation project(':InternalLibs:drawview')
+//    implementation project(':ExternalLibs:youtubeExtractor')
+    implementation project(':ExternalLibs:calendarview')
+    implementation project(':InternalLibs:nyCloud')
+  //  implementation project(':ExternalLibs:ad-filter')
+
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.google.android.material:material:1.12.0'
+
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.50'
+    implementation 'com.blankj:utilcodex:1.30.6'
+    implementation files('libs/json-simple-1.1.1.jar')
+
+    // tiff
+   // implementation 'com.github.beyka:androidtiffbitmapfactory:0.9.8.7'
+
+    //camera
+   // api("com.otaliastudios:cameraview:2.7.2")
+
+    //---youtube download---
+   // implementation 'org.aspectj:aspectjrt:1.8.13'
+  //  implementation 'com.googlecode.mp4parser:isoparser:1.1.22'
+
+    //for smb
+  //  implementation "eu.agno3.jcifs:jcifs-ng:2.1.6"
+    // complement for Libmedia library
+   // implementation 'androidx.documentfile:documentfile:1.0.1'
+   // implementation 'com.nanohttpd:nanohttpd:2.2.0'
+
+    //for txt
+    implementation 'org.commonmark:commonmark:0.18.0'
+    implementation 'androidx.core:core:1.15.0' //for fileProvider, keep 1.6.0
+
+    //for json_view
+    //    implementation project(path: ':jsonhandleview')
+   // implementation 'com.tzx.json:jsonhandleview:1.2.2'
+
+    //cloud backup
+    implementation 'com.cloudrail:cloudrail-si-android:2.22.4'
+
+    //Detect memory leaks
+  //  debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.9.1'
+  //  debugImplementation 'com.balsikandar.android:crashreporter:1.1.0'
+
+    //permission
+   // implementation 'com.karumi:dexter:6.2.3'
+
+    //cloud
+    //  implementation "androidx.room:room-runtime:2.4.3"
+    // implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+
+    implementation 'androidx.work:work-runtime:2.10.0'
+    implementation "com.jakewharton.timber:timber:4.7.1"
+}

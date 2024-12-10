@@ -1,0 +1,131 @@
+package com.nanyang.richeditor.database;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.util.SparseArray;
+
+import com.nanyang.richeditor.App;
+import com.nanyang.richeditor.R;
+
+abstract public class Database {
+    public static final int TYPE_CATEGORY = 0;
+    public static final int TYPE_NOTE = 1;
+    public static final int TYPE_WEBSITE = 2;
+    public static final int TYPE_YOUTUBE = 3;
+
+    public static final long NEW_MODEL_ID = -1;
+    public static final long SEARCH_GLOBAL = -2;
+    public static final long SEARCH_CLICK = -3;
+    public static final long SEARCH_SELECT = -4;
+
+    public long id = NEW_MODEL_ID;
+    public int type;
+    public String title;
+    public String keywords;
+    public String secureKey;
+    public long creationDate;
+    public long modifyDate; // New field
+    public boolean isArchived;
+    public boolean isProtected;
+    public boolean isStard;
+    public int theme;
+
+    // The position is not saved in the database
+    public int position = 0;
+
+    public Database() {
+    }
+
+    /**
+     * Instantiates a new object of DatabaseModel class using the data retrieved from the database.
+     *
+     * @param cursor cursor object returned from a database query
+     */
+    public Database(Cursor cursor) {
+        this.id = cursor.getLong(cursor.getColumnIndex(DbHelper.COLUMN_ID));
+        this.type = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_TYPE));
+        this.title = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_TITLE));
+        this.keywords = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_KEYWORDS));
+        this.secureKey = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_EXTRA));
+        try {
+            this.creationDate = Long.parseLong(cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_DATE)));
+        } catch (NumberFormatException nfe) {
+            this.creationDate = System.currentTimeMillis();
+        }
+        try {
+            this.modifyDate = Long.parseLong(cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_MODIFICATION))); // Initialize modifyDate
+        } catch (NumberFormatException nfe) {
+            this.modifyDate = System.currentTimeMillis();
+        }
+        this.isArchived = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_ARCHIVED)) == 1;
+        this.isProtected = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_PROTECT)) == 1;
+        this.isStard = cursor.getInt(cursor.getColumnIndex(DbHelper.COLUMN_STARED)) == 1;
+    }
+
+    /**
+     * Inserts or updates a note or category.
+     *
+     * @return true if the note is saved.
+     */
+    public long save() {
+        return new DatabaseManager(App.instance.getApplicationContext()).saveNote(this, getContentValues());
+    }
+
+    public int getThemeBackground() {
+        Integer background = THEME_BACKGROUND_MAP.get(theme);
+        return background != null ? background : R.drawable.circle_main;
+    }
+
+    abstract public ContentValues getContentValues();
+
+    @Override
+    public int hashCode() {
+        return (int) id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o != null && o instanceof Database && id == (((Database) o).id);
+    }
+
+    private static final SparseArray<Integer> THEME_BACKGROUND_MAP = new SparseArray<>();
+
+    static {
+        THEME_BACKGROUND_MAP.put(Category.THEME_RED, R.drawable.circle_red);
+        THEME_BACKGROUND_MAP.put(Category.THEME_PINK, R.drawable.circle_pink);
+        THEME_BACKGROUND_MAP.put(Category.THEME_AMBER, R.drawable.circle_amber);
+        THEME_BACKGROUND_MAP.put(Category.THEME_BLUE, R.drawable.circle_blue);
+        THEME_BACKGROUND_MAP.put(Category.THEME_CYAN, R.drawable.circle_cyan);
+        THEME_BACKGROUND_MAP.put(Category.THEME_GREEN, R.drawable.circle_green);
+        THEME_BACKGROUND_MAP.put(Category.THEME_ORANGE, R.drawable.circle_orange);
+        THEME_BACKGROUND_MAP.put(Category.THEME_PURPLE, R.drawable.circle_purple);
+        THEME_BACKGROUND_MAP.put(Category.THEME_TEAL, R.drawable.circle_teal);
+    }
+
+
+    /*
+        public boolean starToggle() {
+        ContentValues values = new ContentValues();
+        values.put(DbHelper.COLUMN_STARED, !isStard);
+
+        if (new Controller(App.instance.getApplicationContext()).saveNote(this, values) != DatabaseModel.NEW_MODEL_ID) {
+            isStard = !isStard;
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean protectionToggle() {
+        ContentValues values = new ContentValues();
+        values.put(DbHelper.COLUMN_PROTECT, !isProtected);
+
+        if (new Controller(App.instance).saveNote(this, values) != DatabaseModel.NEW_MODEL_ID) {
+            isProtected = !isProtected;
+            return true;
+        }
+
+        return false;
+    }
+     */
+}

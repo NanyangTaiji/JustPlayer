@@ -1,0 +1,65 @@
+package com.nanyang.richeditor.database;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.database.Cursor;
+
+
+public class Note extends Database {
+    public long parentId;
+    public String body;
+    public String reference;
+    public String remark;
+
+    public long id;
+    public long modifyDate;
+
+    public Note() {}
+
+    @SuppressLint("Range")
+    public Note(Cursor cursor) {
+        super(cursor);
+        this.id = cursor.getLong(cursor.getColumnIndex(DbHelper.COLUMN_ID));
+        this.modifyDate = cursor.getLong(cursor.getColumnIndex(DbHelper.COLUMN_MODIFICATION));
+        this.parentId = cursor.getLong(cursor.getColumnIndex(DbHelper.COLUMN_PARENT_ID));
+        try {
+            this.body = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_BODY));
+            this.reference = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_REFERENCE));
+            this.remark = cursor.getString(cursor.getColumnIndex(DbHelper.COLUMN_REMARK));
+        } catch (Exception ignored) {}
+    }
+
+    @Override
+    public ContentValues getContentValues() {
+        ContentValues values = new ContentValues();
+        if (id == Database.NEW_MODEL_ID) {
+            values.put(DbHelper.COLUMN_TYPE, TYPE_NOTE);
+            values.put(DbHelper.COLUMN_ARCHIVED, isArchived);
+            values.put(DbHelper.COLUMN_DATE, creationDate);
+            values.put(DbHelper.COLUMN_MODIFICATION, creationDate); // Initialize modifyDate
+        } else {
+            modifyDate = System.currentTimeMillis(); // Update modifyDate
+            values.put(DbHelper.COLUMN_ID, id);
+        }
+        values.put(DbHelper.COLUMN_PARENT_ID, parentId);
+        values.put(DbHelper.COLUMN_TITLE, title);
+        values.put(DbHelper.COLUMN_KEYWORDS, keywords);
+        values.put(DbHelper.COLUMN_REFERENCE, reference);
+        values.put(DbHelper.COLUMN_REMARK, remark);
+        values.put(DbHelper.COLUMN_BODY, body);
+        values.put(DbHelper.COLUMN_EXTRA, secureKey);
+        values.put(DbHelper.COLUMN_PROTECT, isProtected ? 1 : 0);
+        values.put(DbHelper.COLUMN_STARED, isStard ? 1 : 0);
+        values.put(DbHelper.COLUMN_MODIFICATION, modifyDate); // Ensure modifyDate is set
+        return values;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o != null && o instanceof Note && id == (((Note) o).id);
+    }
+
+    public long getId() {
+        return id;
+    }
+}

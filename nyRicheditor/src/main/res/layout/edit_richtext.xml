@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:background="@color/pure_transparent">
+
+    <com.nanyang.richeditor.editor.NyRichEditor
+        android:id="@+id/editor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:cursorVisible="true"
+        android:lineSpacingExtra="5dp"
+        android:textColor="#616161"
+        android:textSize="20sp" />
+
+    <ImageView
+        android:id="@+id/close"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/pure_transparent"
+        android:paddingStart="10dp"
+        android:paddingBottom="10dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:src="@mipmap/close" />
+
+    <ImageView
+        android:id="@+id/move"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        app:background="@color/pure_transparent"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:src="@mipmap/up_down" />
+
+
+    <ImageView
+        android:id="@+id/show"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        app:background="@color/pure_transparent"
+        android:paddingBottom="10dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/rotate" />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
+        >
+
+    <ImageView
+        android:id="@+id/split"
+        android:layout_width="20dp"
+        android:layout_height="24dp"
+        app:background="@color/pure_transparent"
+        android:layout_marginEnd="10dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/icons8_split_vertical_38"/>
+
+    <ImageView
+        android:id="@+id/merge_down"
+        android:layout_width="20dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="10dp"
+        app:background="@color/pure_transparent"
+        android:scaleType="fitXY"
+        android:src="@drawable/icons8_merge_horizontal_38"/>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

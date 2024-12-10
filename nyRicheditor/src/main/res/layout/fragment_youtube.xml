@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinator_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    android:fitsSystemWindows="true">
+
+    <android.gesture.GestureOverlayView
+        android:id="@+id/gestureview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gestureColor="@color/colorAccent_translucent"
+        android:uncertainGestureColor="@color/colorWhite"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ViewStub
+            android:id="@+id/view_stub"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </android.gesture.GestureOverlayView>
+
+ <!--   <TextView
+        android:id="@+id/video_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/title"
+        android:maxLines="1"
+        android:textColor="@color/colorPrimary"
+        android:textColorHint="@color/secondary_text"
+        android:textSize="@dimen/medium_text" />-->
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

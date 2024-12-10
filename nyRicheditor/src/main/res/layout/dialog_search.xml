@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <RadioGroup
+        android:id="@+id/search_option"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        >
+
+        <RadioButton
+            android:id="@+id/search_keyword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:layout_gravity="left"
+            android:text="Keyword"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/date_minus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:layout_gravity="left"
+            android:text="Date-"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/date_plus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:layout_gravity="left"
+            android:text="Date+"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/search_star"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:text="Star"
+            android:layout_gravity="left"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            >
+
+            <EditText
+                android:id="@+id/search_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:hint="Search key:"
+                android:textColor="@color/main_text"
+                android:textColorHint="@color/hint_text"
+                android:textSize="@dimen/medium_text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swtich_body"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:layout_weight="1"
+            android:hint="Deep" />
+
+    </LinearLayout>
+
+</LinearLayout>

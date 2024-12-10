@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/html_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/toolbar_height"
+            android:background="?attr/colorPrimary"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/exportHtml"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:contentDescription="@string/menu"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_forward"
+                    app:tint="@color/white"
+                    tools:ignore="MissingPrefix" />
+
+                <ImageView
+                    android:id="@+id/saveHtml"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:contentDescription="@string/menu"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_menu_save"
+                    app:tint="@color/white"
+                    tools:ignore="MissingPrefix" />
+
+
+                <ImageView
+                    android:id="@+id/exitHtml"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:contentDescription="@string/menu"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/white"
+                    tools:ignore="MissingPrefix" />
+
+
+            </LinearLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/selection_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/toolbar_height"
+            android:background="?attr/colorPrimary"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp">
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/toolbar_height"
+                android:layout_gravity="start|center_vertical"
+                android:background="?attr/colorPrimary">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/selection_back"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:layout_marginStart="5dp"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="10dp"
+                        android:scaleType="fitXY"
+                        app:srcCompat="@drawable/ic_app_icon"
+                        tools:ignore="MissingPrefix" />
+
+                    <TextView
+                        android:id="@+id/selection_counter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="15dp"
+                        android:paddingEnd="15dp"
+                        android:singleLine="true"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/large_text" />
+
+                    <ImageView
+                        android:id="@+id/selection_edit"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="10dp"
+                        android:scaleType="center"
+                        app:srcCompat="@drawable/ic_edit"
+                        tools:ignore="MissingPrefix" />
+
+
+                    <ImageView
+                        android:id="@+id/thumb_up"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:padding="10dp"
+                        android:scaleType="center"
+                        app:srcCompat="@drawable/ic_thumb_up"
+                        app:tint="@color/white" />
+
+
+                    <ImageView
+                        android:id="@+id/locker"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:padding="10dp"
+                        android:scaleType="center"
+                        app:srcCompat="@drawable/ic_unlocked"
+                        app:tint="@color/white" />
+
+                    <ImageView
+                        android:id="@+id/selection_copy"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_content_copy_white_36dp"
+                        tools:ignore="MissingPrefix" />
+
+                    <ImageView
+                        android:id="@+id/selection_move"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_content_cut_white_36dp"
+                        tools:ignore="MissingPrefix" />
+
+
+                    <ImageView
+                        android:id="@+id/selection_merge_down"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/icons8_drag_list_down_48"
+                        android:visibility="gone"
+                        app:tint="@android:color/white"
+                        tools:ignore="MissingPrefix" />
+
+                    <ImageView
+                        android:id="@+id/selection_merge_up"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/icons8_drag_list_up_48"
+                        android:visibility="gone"
+                        app:tint="@android:color/white"
+                        tools:ignore="MissingPrefix" />
+
+                    <ImageView
+                        android:id="@+id/selection_speech"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="15dp"
+                        android:scaleType="center"
+                        android:visibility="gone"
+                        app:srcCompat="@drawable/ic_doc_audio"
+                        app:tint="@android:color/white"
+                        tools:ignore="MissingPrefix" />
+
+                    <ImageView
+                        android:id="@+id/selection_delete"
+                        android:layout_width="@dimen/toolbar_height"
+                        android:layout_height="@dimen/toolbar_height"
+                        android:clickable="true"
+                        android:contentDescription="@string/menu"
+                        android:padding="10dp"
+                        android:scaleType="center"
+                        app:srcCompat="@drawable/ic_delete"
+                        tools:ignore="MissingPrefix" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/toolbar_height"
+            android:background="?attr/colorPrimary"
+            app:contentInsetLeft="0dp"
+            app:contentInsetStart="0dp">
+
+            <ImageView
+                android:id="@+id/nav_btn"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="start|center_vertical"
+                android:clickable="true"
+                android:padding="10dp"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/ic_app_icon" />
+
+            <TextView
+                android:id="@+id/app_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="10dp"
+                android:maxLines="1"
+                android:text="@string/app_name"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/undelete"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="end|top"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:contentDescription="@string/menu"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_undo"
+                app:tint="@color/white"
+                tools:ignore="MissingPrefix" />
+
+      <!--      <ImageView
+                android:id="@+id/iv_youtube"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="end|top"
+                android:layout_marginEnd="20dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/icons8_youtube_48"
+                app:tint="@android:color/white" />-->
+
+            <ImageView
+                android:id="@+id/app_sort"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="end|top"
+                android:layout_marginEnd="20dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_menu_sortby"
+                app:tint="@color/colorWhite" />
+
+            <ImageView
+                android:id="@+id/app_search"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="end|top"
+                android:layout_marginEnd="20dp"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/ic_action_search" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tablayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/toolbar"
+            android:background="@color/darkSilver">
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <android.gesture.GestureOverlayView
+            android:id="@+id/gestureview"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/tablayout"
+            android:background="@drawable/background_image"
+            android:gestureColor="@color/colorPrimaryDark"
+            android:uncertainGestureColor="@color/yellow">
+
+            <FrameLayout
+                android:id="@+id/container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </android.gesture.GestureOverlayView>
+
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="95dp"
+            android:background="@color/pure_transparent"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+    <include layout="@layout/drawer" />
+</androidx.drawerlayout.widget.DrawerLayout>

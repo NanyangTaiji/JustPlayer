@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/speech_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:weightSum="4"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/speech_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_gravity="center"
+            android:background="@color/white"
+            android:text="Download" />
+
+        <ToggleButton
+            android:id="@+id/speech_toggle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:clickable="true"
+            android:background="@drawable/ic_volume_up"
+            android:layout_gravity="center"
+            android:focusable="true" />
+
+
+        <ToggleButton
+            android:id="@+id/language_toggle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:clickable="true"
+            android:textOn="ENGLISH"
+            android:textOff="CHINESE"
+            android:layout_gravity="center"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/speech_share"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_gravity="center"
+            android:text="Share" />
+
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scroll_speech"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/speech_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:background="@color/white"
+            android:textSize="18sp" />
+    </ScrollView>
+
+</LinearLayout>
