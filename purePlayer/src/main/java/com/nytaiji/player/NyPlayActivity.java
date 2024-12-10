@@ -5,12 +5,14 @@ import static com.nytaiji.nybase.filePicker.MediaSelection.REQUEST_CODE_GET_ALL;
 import static com.nytaiji.nybase.filePicker.MediaSelection.REQUEST_CODE_GET_IMAGE;
 import static com.nytaiji.nybase.filePicker.MediaSelection.REQUEST_CODE_GET_VIDEO;
 import static com.nytaiji.nybase.filePicker.MediaSelection.getMediaLinkDialog;
+import static com.nytaiji.nybase.httpShare.WifiShareUtil.getMessageHandler;
 import static com.nytaiji.nybase.model.Constants.ANDROID_PLAYER;
 import static com.nytaiji.nybase.model.Constants.EXTERNAL_PLAYER;
 import static com.nytaiji.nybase.model.Constants.FAN_PLAYER;
 import static com.nytaiji.nybase.model.Constants.GOOGLE_PLAYER;
 import static com.nytaiji.nybase.model.Constants.KEY_PLAYER;
 import static com.nytaiji.nybase.model.Constants.VLC_PLAYER;
+import static com.nytaiji.nybase.network.NetworkServersDialog.getServerLink;
 import static com.nytaiji.nybase.network.VideoPlayNdownload.downloadFromUrl;
 import static com.nytaiji.nybase.utils.NyFileUtil.isDocument;
 import static com.nytaiji.nybase.utils.NyFileUtil.isMedia;
@@ -35,6 +37,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.nytaiji.nybase.NyBaseFragment;
+import com.nytaiji.nybase.model.NyHybrid;
 import com.nytaiji.nybase.utils.GeneralCallback;
 import com.nytaiji.nybase.utils.NyFileUtil;
 import com.nytaiji.nybase.utils.PreferenceHelper;
@@ -117,9 +120,17 @@ public final class NyPlayActivity extends CastActivity {
         getMediaLinkDialog(NyPlayActivity.this, mediaLink, new GeneralCallback() {
                     @Override
                     public void SingleString(String path) {
-                        setMediaLink(path);
-                        buildNplayMedia(mediaLink);
-                        mimeType = getGoogLeMimeType(NyPlayActivity.this, path);
+                        String link = null;
+                        if (path.contains("zip") && !path.contains("http"))
+                            link = getServerLink(new NyHybrid(NyFileUtil.getLastSegmentFromString(path), path), getMessageHandler(NyPlayActivity.this.findViewById(R.id.content)));
+                        else {
+                            link = path;
+                        }
+                        setMediaLink(link);
+                        mimeType = getGoogLeMimeType(NyPlayActivity.this, link);
+                        if (isMedia(mediaLink) /*|| isDocument(mediaLink)*/) {
+                            buildNplayMedia(mediaLink);
+                        }
                     }
 
                     @Override
@@ -134,9 +145,14 @@ public final class NyPlayActivity extends CastActivity {
                 new GeneralCallback() {
                     @Override
                     public void SingleString(String path) {
-                        setMediaLink(path);
-                        mimeType = getGoogLeMimeType(NyPlayActivity.this, path);
-                        if (isMedia(mediaLink) || isDocument(mediaLink)) {
+                        String link = null;
+                        if (path.contains("zip") && !path.contains("http"))
+                            link = getServerLink(new NyHybrid(NyFileUtil.getLastSegmentFromString(path), path), getMessageHandler(NyPlayActivity.this.findViewById(R.id.content)));               else {
+                            link = path;
+                        }
+                        setMediaLink(link);
+                        mimeType = getGoogLeMimeType(NyPlayActivity.this, link);
+                        if (isMedia(mediaLink) /*|| isDocument(mediaLink)*/) {
                             buildNplayMedia(mediaLink);
                         }
                     }

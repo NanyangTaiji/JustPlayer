@@ -333,7 +333,7 @@ public class NyPlayerActivity extends PlayerActivity {
         DataSource.Factory dataSourceFactory;
         String useragent = Util.getUserAgent(context, "com.nytaiji.app");
 
-        if (NyFileUtil.isOnline(path)) {
+       /* if (NyFileUtil.isOnline(path)) {
             //  dataSourceFactory = new OkHttpDataSourceFactory(mCES, new OkHttpClient(), useragent, null);
             dataSourceFactory = new OnlineEncryptedDataSourceFactory(mCES.cipher, mCES.secretKeySpec, mCES.ivParameterSpec, (Call.Factory) new OkHttpClient(), useragent, null);
             // Log.e(TAG, "---------------OnlineEncryptedDataSourceFactory");
@@ -342,10 +342,10 @@ public class NyPlayerActivity extends PlayerActivity {
             cacheServer = getCacheServer(context);
             String proxyVideoUrl = cacheServer.getProxyUrl(url, true);
             contentUri = Uri.parse(proxyVideoUrl);*/
-        } else {
+     //   } else {*/
             //  Log.e(TAG, "-----------EncryptedDataSourceFactory");
             dataSourceFactory = new EncryptedDataSourceFactory(context, mCES.cipher, mCES.secretKeySpec, mCES.ivParameterSpec, null);
-        }
+       // }
         return dataSourceFactory;
     }
 }

@@ -64,7 +64,7 @@ dependencies {
     //TODO ny
     //  implementation project(path: ':nyBase')  //is included in core
     implementation project(':InternalLibs:core')
-    implementation project(':InternalLibs:nyExoPlayer')
+
     api project(':InternalLibs:nyVlcPlayer') //need vlc smb
     implementation project(':InternalLibs:nyFanplayer')
  //   implementation project(':ExternalLibs:muPDF')
@@ -90,9 +90,13 @@ dependencies {
     //the following two are important to resolve duplicats in libs for kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
-    //exoplayer
-    implementation "com.google.android.exoplayer:extension-cast:$rootProject.ext.exoplayer2Version"
 
+
+    //exoplayer
+    implementation project(':InternalLibs:nyExoPlayer')
+    // implementation project(':InternalLibs:nyMedia3Player')
+   implementation "com.google.android.exoplayer:extension-cast:$rootProject.ext.exoplayer2Version"
+   //   implementation("androidx.media3:media3-exoplayer:extension-cast:$rootProject.ext.media3_version")
     //newpipe
    // implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
     // WORKAROUND: v0.24.2 can't be resolved by jitpack -> use git commit hash instead
