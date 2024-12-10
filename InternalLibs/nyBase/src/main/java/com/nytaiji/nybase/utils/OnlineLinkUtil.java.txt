@@ -1,0 +1,1199 @@
+package com.nytaiji.core.utils;
+
+
+import android.content.Context;
+import android.content.DialogInterface;
+import android.net.Uri;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
+import android.webkit.WebSettings;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.nytaiji.online.NyFileUtil;
+import com.nytaiji.online.YoutubeUtil;
+import com.nytaiji.online.encrypt.EncryptUtil;
+import com.nytaiji.online.model.NyVideo;
+import com.nytaiji.online.model.ResponseInfo;
+import com.nytaiji.online.util.SystemUtils;
+import com.nytaiji.online.util.VideoJsonUtil;
+import com.nytaiji.online.util.VideoPlayNdownload;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+
+
+public class OnlineLinkUtil {
+    private static final String TAG = "OnlineLinkUtil";
+    private Handler mHandler;
+    private static List<String> recallList = null;
+    private String cookie;
+    private NyVideo nyVideo;
+    private int mProcess = 1;
+    private Context mContext;
+    private File destination;
+    private int encryptLevel = -1;
+    private onlineCallback mOnlineCallback = null;
+    private Context context;
+    private String userid;
+    private static Class PrintActivity;
+    private static final String KEY_USER_AGENT = "http.agent";
+    private static final String HEADER_KEY_USER_AGENT = "User-Agent";
+    private static final String HEADER_KEY_CONTENT_TYPE = "Content-Type";
+    private static final String DEFAULT_CONTENT_TYPE = "application/json";
+    private static final String BUNDLE_KEY_RESPONSE = "response_key";
+    private String defaultUserAgent;
+    private RequestQueue requestQueue;
+    private final OkHttpClient client = new OkHttpClient();
+    private final Handler handler = new Handler();
+
+    public void OnlineLinkExtracUtil() {
+
+    }
+
+    public void init(Context context, String userid) {
+        this.context = context;
+        this.userid = userid;
+    }
+
+    public static void setPrintActivity(Class printActivity) {
+        PrintActivity = printActivity;
+    }
+
+    public void onlinePlayEnquiry(NyVideo mnyVideo, int process) {
+        onlinePlayEnquiry(mnyVideo, process, null);
+    }
+
+    public void onlinePlayEnquiry(NyVideo mnyVideo, int process, onlineCallback callback) {
+        if (recallCheck(context, mnyVideo)) return;
+        mProcess = process;
+        nyVideo = mnyVideo;
+        // Toast.makeText(context, "passWord:" + nyVideo.passWord, Toast.LENGTH_LONG).show();
+        mOnlineCallback = callback;
+
+        //---
+        //  client = new OkHttpClient();
+        try {
+            defaultUserAgent = WebSettings.getDefaultUserAgent(SystemUtils.getAppCompatActivity(context));
+        } catch (Exception e) {
+            defaultUserAgent = System.getProperty(KEY_USER_AGENT);
+        }
+        //------------
+
+        String downloadedPath = com.nytaiji.online.NyFileUtil.hasDownloadedPath(nyVideo);
+        if (downloadedPath != null) {
+            NyVideo newonlineVideo = new NyVideo(nyVideo.name, downloadedPath);
+            newonlineVideo.setCost(nyVideo.getCost());
+
+            if (mProcess == EXTRACT_ONLY && mOnlineCallback != null) {
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("fileName", newonlineVideo.name);
+                params.put("filePath", newonlineVideo.path);
+                params.put("fileCost", newonlineVideo.cost);
+                mOnlineCallback.onlineCallback(params);
+                return;
+            } else if (mProcess == LINK_PLAY) {
+                VideoPlayNdownload videoPlayUtil = new VideoPlayNdownload();
+                videoPlayUtil.init(context, userid);
+                videoPlayUtil.DirectPlayVideo(newonlineVideo);
+                Toast.makeText(context, com.nytaiji.online.R.string.playingDownload, Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+        if (nyVideo.download == D_DOWN_ONLY) {
+            // if (nyVideo.passWord != null || nyVideo.download > 2) {
+            //   Toast.makeText(mContext, R.string.forcedDownload, Toast.LENGTH_LONG).show();
+            mProcess = D_DOWN_ONLY;
+        } else if (nyVideo.download == D_ENDOWN_ONLY) {
+            // if (nyVideo.passWord != null || nyVideo.download > 2) {
+            Toast.makeText(mContext, com.nytaiji.online.R.string.forcedDownload, Toast.LENGTH_LONG).show();
+            mProcess = EN_DOWNLOAD;
+        }
+        VideoLinkProocess(context, nyVideo);
+    }
+
+    //--------------------------------------------------
+    public boolean recallCheck(Context context, NyVideo nyVideo) {
+        //  Log.e(TAG,"App.getRecallPath() "+ App.getRecallPath());
+        if (com.nytaiji.online.NyFileUtil.hasFile(com.nytaiji.online.NyFileUtil.getRecallPath(context))) {
+            if (recallList == null)
+                recallList = VideoJsonUtil.readListFromPath(context, com.nytaiji.online.NyFileUtil.getRecallPath(context));
+            //  Log.e(TAG,recallList.toString());
+            //   Log.e(TAG,"CONTEXT "+context);
+            Log.e(TAG, " nyVideo.name " + nyVideo.name);
+            String decryptedName = nyVideo.name.replace("_NY1", "");
+            String fullName = com.nytaiji.online.NyFileUtil.getLastSegmentFromString(nyVideo.getPath());
+            //
+            //  Log.e(TAG," decryptedName "+decryptedName);
+            //  Log.e(TAG," fullName "+fullName);
+            File fileToDelete = null;
+            if (recallList.contains(nyVideo.name) || recallList.contains(decryptedName) || recallList.contains(fullName)) {
+
+                Toast.makeText(context, context.getResources().getString(com.nytaiji.online.R.string.recall) + nyVideo.name, Toast.LENGTH_LONG).show();
+                if (com.nytaiji.online.NyFileUtil.isLocal(nyVideo.getPath())) {
+                    fileToDelete = new File(nyVideo.getPath());
+                    fileToDelete.delete();
+                }
+                //online , remove the item in the list
+                String downloadPath = com.nytaiji.online.NyFileUtil.hasDownloadedPath(nyVideo);
+                if (downloadPath != null) {
+                    fileToDelete = new File(downloadPath);
+                    fileToDelete.delete();
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public void downloadQuiry(Context context, NyVideo mnyVideo, int process) {
+        downloadQuiry(context, mnyVideo, process, null);
+    }
+
+    public void downloadQuiry(Context context, NyVideo mnyVideo, int process, onlineCallback callback) {
+        if (recallCheck(context, mnyVideo)) return;
+        nyVideo = mnyVideo;
+        mContext = context;
+        mProcess = process;
+        if (mProcess < LIST_UPDATE) { //LINK_PLAY, LINK_DOWN
+            encryptLevel = EncryptUtil.encryptLevelFromPassword(nyVideo.passWord);
+            destination = com.nytaiji.online.NyFileUtil.setOutputFile(nyVideo.name, encryptLevel);
+            mOnlineCallback = callback;
+        } else if (mProcess == APK_DOWNLAOD || mProcess == LIST_UPDATE) {
+            destination = new File(com.nytaiji.online.NyFileUtil.getNytaijiDir(), nyVideo.name);
+        } else if (mProcess == EN_DOWNLOAD) {
+            destination = com.nytaiji.online.NyFileUtil.setOutputFile(nyVideo.name, 1);
+        }
+//
+        VideoPlayNdownload videoPlayUtil = new VideoPlayNdownload();
+        videoPlayUtil.init(context, userid);
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(context, com.nytaiji.online.R.style.DialogTheme);
+        alertDialog.setTitle(com.nytaiji.online.R.string.redownloading);
+        alertDialog.setNegativeButton(com.nytaiji.online.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                //   if (process == DOWNLOAD_PLAY)
+                //       genVideoPlayUtil.DirectPlayPath(destination.getAbsolutePath());
+            }
+        });
+        alertDialog.setPositiveButton(com.nytaiji.online.R.string.confirm, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //delete the original downloading
+                if (destination.delete()) VideoLinkProocess(context, nyVideo);
+            }
+        });
+//
+        if (com.nytaiji.online.NyFileUtil.hasFile(destination) && mProcess != APK_DOWNLAOD) alertDialog.show();
+        else VideoLinkProocess(context, nyVideo);
+    }
+
+
+    private void VideoLinkProocess(Context context, NyVideo nyVideo) {
+        CookieManager manager = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(manager);
+        requestQueue = Volley.newRequestQueue(context);
+        ///////-------------------------------------///
+//        Toast.makeText(context, R.string.connection, Toast.LENGTH_LONG).show();
+
+        String url = nyVideo.path;
+        //playwith Uri.toString
+        if (url.startsWith("content")) {
+            //   Uri uri = Uri.parse(url.replace("\n",""));
+            Uri uri = Uri.parse(url);
+            if (mOnlineCallback != null) {
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("fileName", nyVideo.name);
+                params.put("filePath", nyVideo.path);
+                mOnlineCallback.onlineCallback(params);
+            }
+
+            if (mProcess == LINK_PLAY) {
+                VideoPlayNdownload videoPlayUtil = new VideoPlayNdownload();
+                videoPlayUtil.init(context, userid);
+                videoPlayUtil.setPrintActivity(PrintActivity);
+                videoPlayUtil.DirectPlayUri(context, uri);
+                Toast.makeText(context, "Change to Uri", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+
+        // remove redudant strings before http link
+        url = RemoveRedundant(url);
+
+        //----------substitution process
+        if (url.toLowerCase().contains("nytaiji")) url = ReProcessLink(url);
+        //general assumption of final link
+        nyVideo.path = url;
+        if (nyVideo.name == null|| TextUtils.isEmpty(nyVideo.name)) nyVideo.name = simpleExtraction(url);
+       // Log.e(TAG, "fileName "+nyVideo.name);
+        //postExtractionAction execution of final link will be processed in feedback/asytask
+
+        //-------------------------------Specail processing--------------------------
+
+        if (com.nytaiji.online.NyFileUtil.isWeShare(url)) {
+            processWe(context, url);
+            } else if (com.nytaiji.online.NyFileUtil.isYoutube(url)) {
+              youtubeExtract(context, url); //move to advancedVideoPlayer
+            //  } else if (NyFileUtil.isCowShare(url)) {
+            //     processCow(context, url, null);
+            //  } else if (url.contains("download?guid=")) {
+            //      extractCowUrl(context, url);
+            //   } else if (NyFileUtil.isWeibo(url)) {
+            //       extractWeiBoUrl(context, url);
+            //  } else if (url.contains("baidu") || url.contains("miaopai") || url.contains("kuaishou") || url.contains("v.ixigua") || url.contains("toutiaoimg")) {
+        } else extractShortVideo(context, url); //starting serial relinking process
+
+    }
+
+    //--------------------------------------------
+    public static String simpleExtraction(String url) {
+        //porntext handle
+        if (url.lastIndexOf("=") > -1)
+            return url.substring(url.lastIndexOf("=") + 1);
+        else if (url.lastIndexOf("/") > -1)
+            return url.substring(url.lastIndexOf("/") + 1);
+        return "online_" + NyFileUtil.timedFileName();
+    }
+
+    private void postExtractionAction(NyVideo nyVideo) {
+        if (mOnlineCallback != null) {
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("fileName", nyVideo.name);
+            params.put("filePath", nyVideo.path);
+            mOnlineCallback.onlineCallback(params);
+        }
+        if (mProcess == LINK_PLAY) {
+            VideoPlayNdownload videoPlayUtil = new VideoPlayNdownload();
+            videoPlayUtil.init(context, userid);
+            videoPlayUtil.setPrintActivity(PrintActivity);
+            videoPlayUtil.DirectPlayVideo(nyVideo);
+        } else if (mProcess != EXTRACT_ONLY) {
+            processDownload(mContext, nyVideo.path, destination, mProcess);
+        }
+    }
+
+    private void processDownload(Context context, String url, File destination, int mode) {
+        if (mode == EN_DOWNLOAD) {  //encrypted level default to 1
+            VideoPlayNdownload.backgroundEncryptedDownload(context, url, destination, 1, cookie);
+        } else {
+            VideoPlayNdownload.backgroundDownload(context, url, destination);
+        }
+    }
+
+
+    private String agentConstructor(String url) {
+        if (url.toLowerCase().contains("weibo")) return defaultUserAgent;
+        Random r = new Random();
+        int i2 = r.nextInt(100 - 10) + 10;
+        int i3 = r.nextInt(1000 - 100) + 100;
+        String temp = i3 + "." + i2;
+        String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/" + temp + " (KHTML, like Gecko) Chrome/" + i2 + ".0.4044." + i3 + "Safari/" + temp;
+        return userAgent;
+    }
+
+    /*----------------------------------------
+    //reference  https://www.jianshu.com/p/20b402e1d83e
+      https://vget.xyz
+      https://www.parsevideo.com   for China
+      https://www.tubeninja.net/zh-hans
+      https://www.videosolo.com/zh-CN/online-video-downloader
+    */
+
+    private void extractShortVideo(Context context, String url) {
+        url = "https://www.videofk.com/index-video-download/search?url=" + URLEncoder.encode(url) + "&select=index h2";
+
+        String contentType = DEFAULT_CONTENT_TYPE;
+
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
+        builder.url(url);
+        // userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/111.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.58";
+        builder.addHeader(HEADER_KEY_USER_AGENT, agentConstructor(url));
+        builder.addHeader(HEADER_KEY_CONTENT_TYPE, contentType);
+      /*  for (int i = 0; i < headCokkies.size(); i++) {
+            builder.addHeader("cookie", headCokkies.get(i));
+            Log.e(TAG, "cookie: " + headCokkies.get(i));
+        }*/
+
+        builder.get();
+        okhttp3.Request request = builder.build();
+
+        String finalUrl = url;
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                //
+                Log.e(TAG, "https://www.videofk.com extaction failure!");
+                //TODO try the second one
+                postExtractionAction(nyVideo);
+                // extractShortVideo2(context, finalUrl);
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull final okhttp3.Response wholeResponse)
+                    throws IOException {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ResponseInfo info = new ResponseInfo(wholeResponse);
+                        String response = info.getContent();
+                        VideoJsonUtil.saveStrToNormalFile(response, new File(getNytaijiDir(), "fetchLog.txt"));
+                        int index1 = response.lastIndexOf("data-video=");
+                        if (index1 < 0) {
+                           // Toast.makeText(context, "Direct link " + index1, Toast.LENGTH_LONG).show();
+                        } else {
+                            String urlnew = response.substring(index1);
+                            //   Log.e(TAG, "urlnew : " + urlnew);
+                            //  int index2 = urlnew.indexOf("data-src=");
+
+                            String path = "";
+                            String fileName = "";
+                            int index2 = urlnew.indexOf("title=");
+                            int index3 = urlnew.indexOf(" role=");
+
+                            if (index2 > 0 && (index3 > index2)) {
+                                path = urlnew.substring(12, index2 - 2);
+                                //  Log.e(TAG, "path: " + path);
+                                fileName = urlnew.substring(index2 + 5, index3);
+                            } else if (index3 > 0 && (index2 > index3)) {
+                                path = urlnew.substring(12, index3);
+                                urlnew = urlnew.substring(index3);
+                              //  Log.e(TAG, "urlnew: " + urlnew);
+                                index1 = urlnew.indexOf("title=");
+                                index2 = urlnew.indexOf("#");
+                               // Log.e(TAG, "  index1: " + index1+"  index2: " + index2);
+                                if (index1 > 0 && index2 > index1)
+                                    fileName = urlnew.substring(index1 + 6, index2+1);
+                            }
+                            //  Log.e(TAG, "fileName: " + fileName);
+                            if (path.length() > 0) {
+                                nyVideo.setPath(path);
+                                nyVideo.setName(fileName);
+                            }
+                        }
+                        postExtractionAction(nyVideo);
+                    }
+                });
+            }
+        });
+    }
+
+
+    private void extractShortVideo2(Context context, String url) {
+        url = "https://www.parsevideo.com/index-video-download/search?url=" + URLEncoder.encode(url) + "&select=index h2";
+
+        String contentType = DEFAULT_CONTENT_TYPE;
+
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
+        builder.url(url);
+        // userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/111.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.58";
+        builder.addHeader(HEADER_KEY_USER_AGENT, agentConstructor(url));
+        builder.addHeader(HEADER_KEY_CONTENT_TYPE, contentType);
+      /*  for (int i = 0; i < headCokkies.size(); i++) {
+            builder.addHeader("cookie", headCokkies.get(i));
+            Log.e(TAG, "cookie: " + headCokkies.get(i));
+        }*/
+
+        builder.get();
+        okhttp3.Request request = builder.build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                //
+                Log.e(TAG, "https://www.videofk.com extaction failure!");
+                //TODO try the second one
+                postExtractionAction(nyVideo);
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull final okhttp3.Response wholeResponse)
+                    throws IOException {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ResponseInfo info = new ResponseInfo(wholeResponse);
+                        String response = info.getContent();
+                        VideoJsonUtil.saveStrToNormalFile(response, new File(getNytaijiDir(), "fetchLog.txt"));
+                        int index1 = response.lastIndexOf("data-video=");
+                        if (index1 < 0) {
+                            // Toast.makeText(context, "Direct link " + index1, Toast.LENGTH_LONG).show();
+                        } else {
+                            String urlnew = response.substring(index1);
+                            //   Log.e(TAG, "urlnew : " + urlnew);
+                            //  int index2 = urlnew.indexOf("data-src=");
+
+                            String path = "";
+                            String fileName = "";
+                            int index2 = urlnew.indexOf("title=");
+                            int index3 = urlnew.indexOf(" role=");
+
+                            if (index2 > 0 && (index3 > index2)) {
+                                path = urlnew.substring(12, index2 - 2);
+                                //  Log.e(TAG, "path: " + path);
+                                fileName = urlnew.substring(index2 + 5, index3);
+                            } else if (index3 > 0 && (index2 > index3)) {
+                                path = urlnew.substring(12, index3);
+                                urlnew = urlnew.substring(index3);
+                                //  Log.e(TAG, "urlnew: " + urlnew);
+                                index1 = urlnew.indexOf("title=");
+                                index2 = urlnew.indexOf("#");
+                                // Log.e(TAG, "  index1: " + index1+"  index2: " + index2);
+                                if (index1 > 0 && index2 > index1)
+                                    fileName = urlnew.substring(index1 + 6, index2+1);
+                            }
+                            //  Log.e(TAG, "fileName: " + fileName);
+                            if (path.length() > 0) {
+                                nyVideo.setPath(path);
+                                nyVideo.setName(fileName);
+                            }
+                        }
+                        postExtractionAction(nyVideo);
+                    }
+                });
+            }
+        });
+    }
+
+
+    //-------------------------------Process of WeTransfer----------------------------
+    private String token;
+    private String header;
+    private String cookies;
+    private String recipient_id = null;
+    private String security_hash;
+    private String transfer_id;
+
+
+    private void processWe(Context context, String url) {
+        //  requestQueue = Volley.newRequestQueue(context);
+
+
+        StringRequest req = new StringRequest(Request.Method.GET, "https://wetransfer.com/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                     //    Log.e("response", response);
+
+                        token = response.substring(response.indexOf("csrf-token") + 21, response.indexOf("title dir") - 11);
+                     //   Log.e(TAG, "token =" + token);
+                        header = token.substring(token.lastIndexOf("/") + 1);
+                      //   Log.e(TAG, "head =" + header);
+                        processWe2(context, url);
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("error", error.getMessage());
+                    }
+                }) {
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                // since we don't know which of the two underlying network vehicles
+                // will Volley use, we have to handle and store session cookies manually
+                //   Log.d("response header:---------", response.headers.toString());
+                Map<String, String> responseHeaders = response.headers;
+                cookies = responseHeaders.get("Set-Cookie");
+                //  Log.d("cookies", cookies);
+                return super.parseNetworkResponse(response);
+            }
+
+        };
+        requestQueue.add(req);
+    }
+
+
+    private void processWe2(Context context, String url) {
+
+        //   RequestQueue requestQueue = Volley.newRequestQueue(context);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //   Log.d(TAG, response);
+                String tempUrl = response.substring(response.indexOf("downloads/") + 10, response.indexOf("preconnect") - 18);
+                // Toast.makeText(context, tempUrl, Toast.LENGTH_LONG).show();
+                //  Log.d(TAG, "tempUrl= " + tempUrl);
+                security_hash = tempUrl.substring(tempUrl.lastIndexOf("/") + 1);
+                //  Log.d("security_hash", security_hash);
+                transfer_id = tempUrl.substring(0, tempUrl.lastIndexOf("/"));
+                //  Log.d("transfer_id", transfer_id);
+                if (transfer_id.contains("/")) {
+                    transfer_id = transfer_id.substring(0, transfer_id.indexOf("/"));
+                    //   Log.d("transfer_id", transfer_id);
+                    recipient_id = transfer_id.substring(transfer_id.indexOf("/") + 1);
+                    //  Log.d("recipient_id", recipient_id);
+                }
+                String we_url = "https://wetransfer.com/api/v4/transfers/" + transfer_id + "/download";
+                processWe3(context, we_url);
+                tempUrl = response.substring(response.indexOf("og:title") + 19, response.indexOf("og:image") - 27);
+                nyVideo.setName(tempUrl);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //  show.setText(error.getMessage());
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("allow_redirects", "True");
+                return headers;
+            }
+        };
+
+        requestQueue.add(stringRequest);
+    }
+
+    private void processWe3(Context context, String newurl) {
+        Map<String, String> params = new HashMap();
+        //new modified 2020 09 23
+        params.put("intent", "entire_transfer");
+        //---
+        params.put("security_hash", security_hash);
+        if (recipient_id != null) params.put("recipient_id", recipient_id);
+
+        JSONObject parameters = new JSONObject(params);
+
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, newurl, parameters, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                //TODO: handle success
+                Log.d("response", response.toString());
+                String finallink = "link";
+                try {
+                    finallink = response.getString("direct_link");
+                    //  JSONArray jsonArray = response.getJSONArray("data");
+                    // for (int i = 0; i < jsonArray.length(); i++) {
+                    //   JSONObject jo = jsonArray.getJSONObject(i);
+                    //  }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                nyVideo.setPath(finallink);
+                Log.e(TAG, "we-finallink:" + finallink);
+                postExtractionAction(nyVideo);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                //TODO: handle failure
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                //  headers.put("transfer_id", transfer_id);
+                headers.put("x-csrf-token", token);
+                headers.put("x-requested-with", "XMLHttpRequest");
+                headers.put("cookie", cookies);
+                headers.put("connection", "keep-alive");
+                return headers;
+            }
+        };
+        requestQueue.add(jsonRequest);
+    }
+
+    //--------------------------Reprocess Stuff------------------
+
+    private String ReProcessLink(String path) {
+        String path1 = "https://www.nytaiji.com/dir_c/";
+        String path2 = "https://cowtransfer.com/transfer/download?guid=";
+        String path3 = "https://www.nytaiji.com/dir_w/";
+        String path4 = "https://www.weibo.com/tv/v/";
+        String path5 = "https://www.nytaiji.com/dir_v/";
+        String path6 = "https://video.weibo.com/show?fid=1034:";
+        String path7 = "https://www.nytaiji.com/dir_we/";
+        String path8 = "https://we.tl/";
+        if (path.contains(path1)) {
+            return path.replace(path1, path2);
+        } else if (path.contains(path3)) {
+            return path.replace(path3, path4);
+        } else if (path.contains(path5)) {
+            return path.replace(path5, path6);
+        } else if (path.contains(path7)) {
+            return path.replace(path7, path8);
+        }
+        return path;
+    }
+
+
+    public static String ProcessLink(String path) {
+        String path1 = "https://www.nytaiji.com/dir_c/";
+        String path2 = "https://cowtransfer.com/transfer/download?guid=";
+        String path3 = "https://www.nytaiji.com/dir_w/";
+        String path4 = "https://www.weibo.com/tv/v/";
+        String path5 = "https://www.nytaiji.com/dir_v/";
+        String path6 = "https://video.weibo.com/show?fid=1034:";
+        String path7 = "https://www.nytaiji.com/dir_we/";
+        String path8 = "https://we.tl/";
+        if (path.contains(path2)) {
+            return path.replace(path2, path1);
+        } else if (path.contains(path4)) {
+            return path.replace(path4, path3);
+        } else if (path.contains(path6)) {
+            return path.replace(path6, path5);
+        } else if (path.contains(path8)) {
+            return path.replace(path8, path7);
+        }
+        return path;
+    }
+
+    private void youtubeExtract(Context context, String onlineUrl) {
+        YoutubeUtil youtubeUtil = new YoutubeUtil(context);
+        youtubeUtil.YoutubeDialog(onlineUrl, mProcess, mOnlineCallback, userid);
+    }
+
+    //-----------------
+    public interface onlineCallback {
+
+        void onlineCallback(Map<String, Object> params);
+    }
+
+
+    //-------------------------Abundant routines----------------------
+
+
+  /*    List<String> headCokkies = new ArrayList<String>();
+  private void extractShortVideo(Context context, String url) {
+
+        StringRequest req = new StringRequest(Request.Method.GET, "https://www.videofk.com/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        extractShortVideo2(context, url);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("error", error.getMessage());
+                    }
+                }) {
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                // we must override this to get headers. and with the fix, we should get all headers including duplicate names
+                // in an array of apache headers called apacheHeaders. everything else about volley is the same
+                for (int i = 0; i < response.allHeaders.size(); i++) {
+                    String key = response.allHeaders.get(i).getName();
+                    String value = response.allHeaders.get(i).getValue();
+                    if (key.equals("Set-Cookie")) {
+                        headCokkies.add(value);
+                        //  Log.e(TAG, "key: "+key + " - value  " + value);
+                    }
+
+                }
+                return super.parseNetworkResponse(response);
+            }
+        };
+
+        requestQueue.add(req);
+    }*/
+
+
+   /* private void extractShortVideo2(Context context, String url) {
+        String request = "https://www.videofk.com/index-video-download/search?url=" + URLEncoder.encode(url) + "&select=index h2";
+        //  Log.e(TAG, "request: " + request);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, request, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //  Log.e(TAG, "response0: " + response.substring(500));
+                int index1 = response.indexOf("data-video=");
+                if (index1 < 0) {
+                    Toast.makeText(context, "Fetch Error " + index1, Toast.LENGTH_LONG).show();
+                    VideoJson.saveStrToNormalFile(response, new File(getNytaijiDir(), "fetchError.txt"));
+                    return;
+                }
+                String urlnew = response.substring(index1);
+                //   Log.e(TAG, "urlnew : " + urlnew);
+                int index2 = urlnew.indexOf("data-src=");
+                String path = urlnew.substring(12, index2 - 2);
+                Log.e(TAG, "path: " + path);
+                urlnew = urlnew.substring(index2 + 25);
+                String fileName = urlnew.substring(0, urlnew.indexOf("\"") - 1);
+                Log.e(TAG, "fileName: " + fileName);
+
+                if (path.length() > 0) {
+                    nyVideo.setPath(path);
+                    nyVideo.setName(fileName);
+                    postExtractionAction(nyVideo);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //  show.setText(error.getMessage());
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "text/html; charset=UTF-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+             //   headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*///*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+    //   headers.put(KEY_USER_AGENT, userAgent);
+    //    headers.put(HEADER_KEY_CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
+    // for (int i = 0; i < headCokkies.size(); i++) {
+    //     headers.put("cookie", headCokkies.get(i));
+    //       Log.e(TAG, "cookie: " + headCokkies.get(i));
+    //    }
+    //   Log.e(TAG, "headers: "+ headers.toString());
+    //    headers.put("cookie", headCokkies.get(0)+", cookie="+headCokkies.get(1));
+    //    return headers;
+    //  }
+    //  };
+
+    //  requestQueue.add(stringRequest);
+    // }
+
+
+    // to get cookies from url, we can use the following method
+    //  String cookies= AgentWebConfig.getCookiesByUrl("https://cowtransfer.com/");
+    //     Toast.makeText(this,"cookies:"+cookies,Toast.LENGTH_LONG).show();
+    //同步 Cookie
+// AgentWebConfig.syncCookie("http://www.jd.com","ID=XXXX");*/
+
+ /*   private void processCow(Context context, String onlineUrl, String cowPassWord) {
+
+        StringRequest postRequest = new StringRequest(Request.Method.POST, "https://cowtransfer.com/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                      // cookies=manager.getCookieStore().getCookies().toString();
+                      //  cookies=cookies.replace("[","");
+                      //  cookies=cookies.replace("]","");
+                        //  Log.e("Response", response);
+                      //  Log.e("COOKIE", cookies);
+                        processCow1(context, onlineUrl, cowPassWord);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                    }
+                }
+        ) {
+        };
+        requestQueue.add(postRequest);
+
+    }
+
+
+    private void processCow1(Context context, String onlineUrl, String cowPassWord) {
+
+        //  CookieHandler.setDefault(manager);
+        String url_per = onlineUrl.substring(onlineUrl.lastIndexOf("/") + 1);
+
+        String first_url = "https://cowtransfer.com/transfer/transferdetail?url=";
+        String second_url = "https://cowtransfer.com/transfer/download?guid=";
+
+        //  RequestQueue queue = Volley.newRequestQueue(context);
+
+        //   String request = first_url + url_per  + "&treceive=undefined HTTP/1.1";
+        String request = first_url + url_per;
+        //  if (cowPassWord != null) request = request + "&passcode=" + cowPassWord;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, request, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e("response", response.toString());
+                        String temp = response.toString();
+
+                        if (temp == null || temp.indexOf("null") < 15) {
+                            Toast.makeText(context, "The Link is expired/invalid (链接无效或过期)!", Toast.LENGTH_LONG).show();
+                            // trueUrl.setText("The Link is expired/invalid (链接无效或过期)!");
+                            return;
+                        }
+                        String Guid = temp.substring(temp.lastIndexOf("guid") + 7, temp.lastIndexOf("transferGuid") - 3);
+                        Log.e("Guid ", temp);
+                        String fileName = temp.substring(temp.lastIndexOf("name") + 7, temp.lastIndexOf("fileName") - 3);
+                        Log.e("fileName ", fileName);
+
+                        //The following pass second_url + Guid+"/"+ fileName+"="+ url_per
+                        String fileSize = temp.substring(temp.lastIndexOf("sizeInByte") + 12, temp.lastIndexOf("downloadName") - 2);
+                        extractCowUrl(context, second_url + Guid + "/" + fileName + "=" + url_per);
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("VolleyError", error.toString());
+                        ;
+                    }
+                }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36");
+                headers.put("Accept", "application/json");
+                headers.put("Host", "cowtransfer.com");
+                headers.put("Accept-Encoding", "gzip,deflate,br");
+                headers.put("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7");
+                headers.put("Sec-Fetch-Site", "same-origin");
+                headers.put("Sec-Fetch-Mode", "cors");
+                headers.put("referer", "https://cowtransfer.com/s/" + url_per);
+                headers.put("Connection", "keep-alive");
+                //   headers.put("Cookie", cookies);
+                return headers;
+            }
+        };
+        // Add the request to the RequestQueue.
+        requestQueue.add(jsonObjectRequest);
+    }
+
+
+    private void extractCowUrl(Context context, String info) {
+
+        String url = info.substring(0, info.lastIndexOf("/"));
+        String url_per = info.substring(info.lastIndexOf("=") + 1);
+        if (info.lastIndexOf("=") < 0) {
+            Toast.makeText(context, "The Link is expired/invalid (链接无效或过期)!", Toast.LENGTH_LONG).show();
+            // trueUrl.setText("The Link is expired/invalid (链接无效或过期)!");
+            return;
+        }
+        String fileName = info.substring(info.lastIndexOf("/") + 1, info.lastIndexOf("="));
+
+        nyVideo.setName(fileName);
+        Log.w(TAG, "File Name" + fileName);
+        String pw = EncryptUtil.getPasswordFromFileName(fileName);
+        if (pw != null) {
+            nyVideo.passWord = pw;
+            // Toast.makeText(context, "加密视频，建议先下载！", Toast.LENGTH_LONG).show();
+        }
+        //ToDO
+        // if (fileSize!=null)nyVideo.videoInfo().size=Long.valueOf(fileSize);
+
+        // if (trueUrl != null) trueUrl.setText(url + "/" + fileName + "=" + url_per);
+
+        //   RequestQueue requestQueue = Volley.newRequestQueue(context);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String finallink = response.substring(9, response.length() - 2) + "&attname=" + fileName;
+                        Log.w(TAG, "FinalLink" + finallink);
+                        nyVideo.setPath(finallink);
+                        postExtractionAction(nyVideo);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //  show.setText(error.getMessage());
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36");
+                headers.put("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7");
+                headers.put("referer", "https://cowtransfer.com/s/" + url_per);
+                headers.put("Connection", "keep-alive");
+                //  headers.put("Cookie", cookies);
+                return headers;
+            }
+        };
+
+        requestQueue.add(stringRequest);
+    }
+
+
+
+  /*  private void extractDouYinUrlTask(Context context, String url) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                extractDouYinUrl(context, url);
+            }
+        }).start();
+    }*/
+
+    /*
+       private void extractDouYinUrl(Context context, String url) {
+           // Toast.makeText(context, "Extracting video, be patient...", Toast.LENGTH_SHORT).show();
+
+           DouYinVideo video = null;
+           if (TextUtils.isEmpty(url)) {
+               //   Toast.makeText(context,"Please input valid link!",Toast.LENGTH_LONG).show();
+               return;
+           }
+           try {
+               video = DouyinDecodeUtil.DouYinDecode(url).orElseThrow(() -> new Exception("Parsing failed."));
+           } catch (Throwable throwable) {
+               //  Toast.makeText(context,"Parsing failed",Toast.LENGTH_LONG).show();
+               return;
+           }
+           if (video != null) {
+               nyVideo.setPath(video.getPlayAddr());
+               postExtractionAction(nyVideo);
+           }
+
+       }
+   */
+
+    /*
+    private void extractWeiBoUrl(Context context, String url) {
+        //  RequestQueue requestQueue = Volley.newRequestQueue(context);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                int restrue = response.indexOf("fluency=");
+                if (restrue < 0) {
+                    Toast.makeText(context, "Invalid link", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String finallink = response.substring(restrue + 8, response.indexOf("action-data="));
+                finallink = finallink.substring(finallink.lastIndexOf("http"), finallink.trim().length() - 1);
+                finallink = codeTransfer(finallink);
+
+                nyVideo.setPath(finallink);
+                String fileName = response.substring(response.indexOf("info_txt W_f14"), response.indexOf("info_bot clearfix"));
+                fileName = fileName.substring(fileName.indexOf(">") + 1, fileName.indexOf("<") - 1);
+                nyVideo.setName(fileName);
+                postExtractionAction(nyVideo);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //  show.setText(error.getMessage());
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Connection", "keep-alive");
+                headers.put("Cache-Control", "max-age=0");
+                headers.put("DNT", "1");
+                headers.put("Upgrade-Insecure-Requests", "1");
+                headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36");
+                headers.put("Sec-Fetch-Dest", "document");
+             //   headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,
+             //;q=0.8,application/signed-exchange;v=b3;q=0.9");
+     */
+              /*  headers.put("Sec-Fetch-Site", "same-site");
+                headers.put("Sec-Fetch-Mode", "navigate");
+                headers.put("Sec-Fetch-User", "?1");
+                headers.put("Referer", "https://passport.weibo.com/visitor/visitor?entry=miniblog^&a=enter^&url=https^%^3A^%^2F^%^2Fweibo.com^%^2Ftv^%^2Fv^%^2FHvyNcv6kC^%^3Ffid^%^3D1034^%^3A4375218609978642^&domain=.weibo.com^&ua=php-sso_sdk_client-0.6.28^&_rand=1583725196.9287");
+                headers.put("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7");
+                headers.put("Cookie", "SUB=_2AkMpOTWnf8NxqwJRmP4Ry2rnZYtwyQnEieKfZcR8JRMxHRl-yT9jqmMrtRB6ArkbSJDWw5Gu9qQqBRks-6WHOGZ97aTa; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WhkmD08JYTrM9Ziv71VKKR2; TC-Page-G0=62b98c0fc3e291bc0c7511933c1b13ad^|1583725200^|1583725200; TC-V5-G0=4de7df00d4dc12eb0897c97413797808; WBStorage=42212210b087ca50^|undefined; _s_tentry=passport.weibo.com; Apache=3634765420821.926.1583725199150; SINAGLOBAL=3634765420821.926.1583725199150; ULV=1583725199171:1:1:1:3634765420821.926.1583725199150:");
+                return headers;
+            }
+        };
+
+        requestQueue.add(stringRequest);
+    }
+
+
+/*
+    public void directDownloadFromUrl(Context context, String onlineUrl, File downloadFile, String cookie) {
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(onlineUrl));
+        //If google drive you need to set cookie
+        if (cookie != null) {
+            request.addRequestHeader("cookie", cookie);
+        }
+        request.setTitle(downloadFile.getName());
+        request.allowScanningByMediaScanner();
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationUri(Uri.fromFile(downloadFile));
+        Toast.makeText(context.getApplicationContext(), R.string.backgroundDownload, Toast.LENGTH_LONG).show();
+        DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        manager.enqueue(requesot);
+        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                EncryptedDownloadTask.AnnouncedAndRegister(context, downloadFile.getAbsolutePath());
+            }
+        };
+        context.registerReceiver(receiver, filter);
+    }
+
+    public void downloadFromUrl(String onlineUrl, File destination, DownloadManager dlManager) {
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(onlineUrl));
+        String fileName = mFileUtil.getFullFileNameFromPath(destination.getAbsolutePath());
+        request.setTitle(fileName);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationUri(Uri.fromFile(destination));
+        dlManager.enqueue(request);
+    }
+
+    private void AnnouncedAndRegister(Context context, File infile) {
+        String fullName = infile.getName();
+        String filePath = infile.getAbsolutePath();
+
+        //--- register--------------
+        String mimeType = getTypeFromName(infile.getName());
+        if (mimeType.contains("video") || fullName.toLowerCase().endsWith("mts")) {
+            //updateMediaStore(context, outfile.getPath());
+            ContentResolver mContentResolver = context.getContentResolver();
+            ContentValues values = new ContentValues(3);
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, infile.getName());
+            values.put(MediaStore.Video.Media.DATA, infile.getPath());
+            values.put(MediaStore.Video.Media.SIZE, infile.length());
+            //   mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+
+            NyVideo nyVideo = new NyVideo(fullName, filePath);
+            appendVideoToList(nyVideo, "1 NewDownload");
+        }
+
+        Intent intent = new Intent();
+        // 设置Intent的Action属性
+        intent.setAction(DOWNLOAD_BROADCAST);
+        intent.putExtra(DOWNLOAD_URL, filePath);
+        intent.putExtra(DOWNLOAD_FULL_NAME, fullName);
+        // 发送广播
+        context.sendBroadcast(intent);
+
+        if (!filePath.endsWith("lst") && !filePath.endsWith("ison"))
+            Toast.makeText(context, fullName + context.getResources().getString(com.nytaiji.core.R.string.downloadTo) + infile.getParent(), Toast.LENGTH_LONG).show();
+    }
+*/
+
+
+   /* private void youtubeExtract(Context context, String onlineUrl) {
+        android.util.Log.e(TAG, "youtubeExtract: " + onlineUrl);
+        new YoutubeStreamExtractor(new YoutubeStreamExtractor.ExtractorListner() {
+
+            @Override
+            public void onExtractionDone(List<YTMedia> adaptiveStream, final List<YTMedia> muxedStream, YoutubeMeta meta) {
+                ArrayList<String> urls_li = new ArrayList<>();
+                ArrayList<String> type_li = new ArrayList<>();
+                nyVideo.path = muxedStream.get(0).getUrl();
+                int resolution = 0;
+                int highest = 0;
+                for (YTMedia c : muxedStream) {
+                    resolution = Integer.valueOf(c.getQualityLabel().substring(0, 3));
+                    if (resolution > highest) {
+                        highest = resolution;
+                        nyVideo.path = c.getUrl();
+                    }
+                }
+                nyVideo.name = meta.getTitle(); //get Name
+                android.util.Log.e(TAG, "youtubeExtract: " + nyVideo.name);
+                if (nyVideo.path == onlineUrl) XgetterProcess(context, onlineUrl);
+                else {
+                    postExtractionAction(nyVideo);
+                }
+            }
+
+            @Override
+            public void onExtractionGoesWrong(final ExtractorException e) {
+
+                XgetterProcess(context, onlineUrl);
+
+            }
+        }).useDefaultLogin().Extract(onlineUrl);
+
+    }*/
+
+
+
+
+
+  /*  List<String> headCokkies = new ArrayList<String>();
+
+    private void extractShortVideo(Context context, String url) {
+
+        StringRequest req = new StringRequest(Request.Method.GET, "https://www.videofk.com/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        extractShortVideo2(context, url);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("error", error.getMessage());
+                    }
+                }) {
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                // we must override this to get headers. and with the fix, we should get all headers including duplicate names
+                // in an array of apache headers called apacheHeaders. everything else about volley is the same
+                for (int i = 0; i < response.allHeaders.size(); i++) {
+                    String key = response.allHeaders.get(i).getName();
+                    String value = response.allHeaders.get(i).getValue();
+                    if (key.equals("Set-Cookie")) {
+                        headCokkies.add(value);
+                        //  Log.e(TAG, "key: "+key + " - value  " + value);
+                    }
+
+                }
+                return super.parseNetworkResponse(response);
+            }
+        };
+
+        requestQueue.add(req);
+    }*/
+}

@@ -1,0 +1,728 @@
+package com.nytaiji.nybase;
+
+import static android.view.View.VISIBLE;
+import static com.nytaiji.nybase.filePicker.MediaSelection.DEFAULT_MEDIA;
+import static com.nytaiji.nybase.httpShare.WifiShareUtil.getMessageHandler;
+import static com.nytaiji.nybase.httpShare.WifiShareUtil.getPreferredServerUrl;
+import static com.nytaiji.nybase.utils.MIMEType.isFileExtractable;
+import static com.nytaiji.nybase.utils.NyFileUtil.getLastSegmentFromString;
+import static com.nytaiji.nybase.utils.NyFileUtil.isImage;
+import static com.nytaiji.nybase.utils.NyFileUtil.isOnline;
+import static com.nytaiji.nybase.utils.SystemUtils.adjustSystemUIVisibility;
+import static com.nytaiji.nybase.utils.SystemUtils.dp2px;
+import static com.nytaiji.nybase.utils.SystemUtils.hideSysStausUI;
+import static com.nytaiji.nybase.utils.SystemUtils.hideSystemUI;
+import static com.nytaiji.nybase.utils.SystemUtils.isLandscape;
+import static com.nytaiji.nybase.utils.SystemUtils.setRequestedOrientation;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.mediarouter.app.MediaRouteButton;
+
+import com.amaze.filemanager.fileoperations.filesystem.OpenMode;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.nytaiji.nybase.httpShare.WifiShareUtil;
+import com.nytaiji.nybase.model.NyHybrid;
+import com.nytaiji.nybase.utils.NyFileUtil;
+import com.nytaiji.nybase.utils.NyMimeTypes;
+import com.nytaiji.nybase.utils.PreferenceHelper;
+import com.nytaiji.nybase.utils.SystemUtils;
+import com.nytaiji.nybase.view.nyBottomSheetBehavior;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class NyDisplayFragment extends NyBaseFragment implements View.OnClickListener {
+    protected final static String TAG = "NyDisplayFragment";
+    private boolean backwardSlide = false;
+    private boolean SlideOn = false;
+    private WebView nyWebView;
+    private String currUrl, reroutedUrl;
+    private View root, webViewFrame/*, videoViewFrame*/;
+    private final int slideInterval = 5000;
+    public NyHybrid hybridFile = null;
+
+    private nyBottomSheetBehavior sheetBehavior;
+    //   private boolean videoDirect = false;  //whether to start with videoview directly
+    ImageView miniPrev, miniPlay, miniNext, miniEnd;
+    ImageView mainPrev, mainPlay, mainNext, mainEnd;
+    ImageView mainShuffle,/* miniShuffle,*/
+            miniThumb, mainThumb;
+    TextView miniTitle, mainTitle, mainInfo, miniInfo;//, playerType;
+    private View miniPlayer, mainPlayer;
+    private ListView mListSub;
+    public ArrayList<NyHybrid> fileList;
+
+    private boolean playOn = true;
+    private Timer swipeTimer = null;
+    private int vIndex = 0;
+    private static boolean noPip = true;
+    //  public OpenMode mOpenMode;
+    private WebSettings webSetting;
+    private int semiTransparentColor;
+
+    public NyDisplayFragment() {// Required empty public constructor
+    }
+
+    private static int containerId;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    //  private Caster caster;
+
+    public static void show(FragmentManager fm, int fragmentContainerId, NyHybrid baseFile) {
+        containerId = fragmentContainerId;
+        if (get(fm) != null) {
+            remove(get(fm));
+        }
+        //  Bundle arguments = new Bundle();
+        NyDisplayFragment fragment = new NyDisplayFragment();
+        fragment.setBaseFile(baseFile);
+        //  fragment.setArguments(arguments);
+        final FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(fragmentContainerId, fragment, TAG);
+        ft.commitAllowingStateLoss();
+    }
+
+    public static NyDisplayFragment get(FragmentManager fm) {
+        return (NyDisplayFragment) fm.findFragmentByTag(TAG);
+    }
+
+    public static void remove(NyDisplayFragment nyDisplayFragment) {
+        // Ensure that the fragment is not null
+        if (nyDisplayFragment != null) {
+            // Destroy the fragment
+            nyDisplayFragment.destroy();
+
+            // Check if the fragment is added before attempting to remove it
+            if (nyDisplayFragment.isAdded()) {
+                // Perform the fragment transaction
+                nyDisplayFragment.getParentFragmentManager()
+                        .beginTransaction()
+                        .remove(nyDisplayFragment)
+                        .commitAllowingStateLoss();
+            }
+        }
+    }
+
+
+    public void setBaseFile(NyHybrid baseFile) {
+        if (baseFile == null) {
+            Toast.makeText(getContext(), "Invalid NyHybrid", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        hybridFile = baseFile;
+        hybridFile.setMimeType(NyMimeTypes.getMimeTypeFromPath(baseFile.getPath()));
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        //needed for efficient loading of pdf file
+        destroy();
+        adjustSystemUIVisibility(requireActivity());
+        SystemUtils.keepScreenOn(mActivity);
+        //   caster = Caster.create(mActivity);
+
+        //
+        root = inflater.inflate(R.layout.fragment_display, container, false);
+
+        //   sharedPreferences = PreferenceHelper.getInstance();
+        setupWebView();
+        initBottomSheet();
+        setHasOptionsMenu(true);
+        setUpMediaRouteButton();
+        initDisplay();
+        //  requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+        return root;
+    }
+
+    private void setUpMediaRouteButton() {
+        MediaRouteButton mainCast = root.findViewById(R.id.main_route);
+        MediaRouteButton miniCast = root.findViewById(R.id.mini_route);
+        // caster.setupMediaRouteButton(mainCast, true);
+        //caster.setupMediaRouteButton(miniCast, true);
+    }
+
+
+    private void setupWebView() {
+        nyWebView = root.findViewById(R.id.web_view);
+        setWebSettings();
+        nyWebView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mainPlayerVisibility(View.VISIBLE);
+                return false;
+            }
+        });
+
+        CookieManager.getInstance().setAcceptCookie(false);
+
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    protected void setWebSettings() {
+        webSetting = nyWebView.getSettings();
+        webSetting.setJavaScriptEnabled(true);// this one used will destroy roation when adjustVideoSize() is implemented
+
+        webSetting.setAllowFileAccess(true);
+        webSetting.setAllowUniversalAccessFromFileURLs(true);
+        webSetting.setAllowFileAccessFromFileURLs(true);
+        webSetting.setMediaPlaybackRequiresUserGesture(false);  //necessary for auto video play
+        //缩放操作
+        webSetting.setSupportZoom(true); //支持缩放，默认为true。是下面那个的前提。
+        webSetting.setBuiltInZoomControls(true); //设置内置的缩放控件。若为false，则该WebView不可缩放
+        webSetting.setDisplayZoomControls(false); //隐藏原生的缩放控件
+
+        //  if (NyFileUtil.isOnline(hybridFile.getUri()))
+        //     webSetting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        webSetting.setDomStorageEnabled(true);
+
+        //支持通过JS打开新窗口
+        webSetting.setJavaScriptCanOpenWindowsAutomatically(true);
+        webSetting.setLoadsImagesAutomatically(true);
+        webSetting.setDefaultTextEncodingName("UTF-8");
+        webSetting.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        webSetting.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            CookieManager.getInstance().setAcceptThirdPartyCookies(nyWebView, true);
+        } else {
+            CookieManager.getInstance().setAcceptCookie(true);
+        }
+    }
+
+    private void initDisplay() {
+        if (isFileExtractable(hybridFile.getName(mActivity))) {
+            Toast.makeText(mActivity, "Decompressed or download it first", Toast.LENGTH_LONG).show();
+            remove(NyDisplayFragment.this);
+        } else if (hybridFile != null && hybridFile.getUri() != null) {
+            if (hybridFile.isLocal()) {
+                hybridFile.setPath(NyFileUtil.getPath(getContext(), hybridFile.getUri()));
+                ArrayList<NyHybrid> nyVideoList = hybridFile.commonrades();
+                if (nyVideoList.size() > 0) shuffleDisplay(nyVideoList);
+                else displayMedia(hybridFile);
+            } else displayMedia(hybridFile);
+        } else if (hybridFile != null && hybridFile.getPath() != null) {// ArrayList<NyHybrid> nyVideoList = hybridFile.commonrades();
+            Log.e(TAG, "hybridFile.getPath()=" + hybridFile.getPath());
+            ArrayList<NyHybrid> nyVideoList = hybridFile.commonrades();
+            shuffleDisplay(nyVideoList);
+        }
+    }
+
+    private void shuffleDisplay(ArrayList<NyHybrid> nyVideoList) {
+        fileList = nyVideoList;
+        vIndex = 0; //initiate
+        currUrl = fileList.get(vIndex).getPath();
+        //  boolean toShuffle = sharedPreferences.getBoolean(KEY_SHUFFLE, false);
+        //  if (toShuffle) Collections.shuffle(fileList, new Random());
+        String mimeType = NyMimeTypes.getMimeTypeFromPath(currUrl);
+        if (mimeType == null || mimeType.isEmpty())
+            mimeType = PreferenceHelper.getInstance().getString(DEFAULT_MEDIA);
+
+        if (fileList.size() == 0) {
+            fileList.add(hybridFile);
+        }
+        if (fileList.size() > 1) initListSub();  //recalculate vIndex in this method;
+        else hideButtons();
+
+        if (mimeType.contains("image")) {
+            // 设置自适应屏幕，两者合用
+            webSetting.setUseWideViewPort(true); // 将图片调整到适合WebView的大小
+            webSetting.setLoadWithOverviewMode(true); // 缩放至屏幕的大小
+            slideTiming(new Handler(), Update, 0, slideInterval);
+        } else
+            processList();
+    }
+
+
+    private void mainPlayerVisibility(int Visibility) {
+
+        mainPlayer.setVisibility(Visibility);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mainPlayer.setVisibility(View.INVISIBLE);
+            }
+        }, 3000);
+    }
+
+    private void displayMedia(NyHybrid hybridFile) {
+
+        //assued that hybridFile is constructed with HyBridFIle(Uri);
+        if (hybridFile == null) {
+            Toast.makeText(getContext(), "display null file", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        playOn = true;
+        adjustPlayerIcon();
+        if (fileList == null || fileList.size() == 1) hideButtons();
+        //  Log.e(TAG, "displayUri uri = " + hybridFile.getUri().toString());
+        String name = getLastSegmentFromString(hybridFile.getUri().toString());
+        String mimeType = hybridFile.getMimeType();
+        if (mimeType == null || mimeType.isEmpty())
+            mimeType = PreferenceHelper.getInstance().getString(DEFAULT_MEDIA);
+        String finalMimeType = mimeType;
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (name.contains("_NY") && !isOnline(hybridFile.getPath())) { //to avoid double decryping
+                    Log.e(TAG, "decryping =" + name);
+                    hybridFile.setPath(hybridFile.getPath());
+                    reroutedUrl = getPreferredServerUrl(false, true); //internal using random port
+                    // WifiShareUtil.stopHttpServer();
+                    //do not use hybridfile
+                    WifiShareUtil.httpShare(getActivity(), hybridFile, reroutedUrl, getMessageHandler(getActivity().findViewById(containerId)));
+                    WifiShareUtil.setUnique(true);
+                    if (finalMimeType.contains("video"))
+                        loadVideoInTop(Uri.parse(reroutedUrl), hybridFile.getMimeType());
+                    else nyWebView.loadUrl(reroutedUrl);
+
+                } else {
+                    if (finalMimeType.contains("video"))
+                        loadVideoInTop(hybridFile.getUri(), finalMimeType);
+                    else nyWebView.loadUrl(NyFileUtil.getPath(getContext(), hybridFile.getUri()));
+                }
+            }
+        });
+
+        //NOTE
+        //simulate a roation behavior, important for bringback the original hidden state
+        onConfigurationChanged(getResources().getConfiguration());
+
+    }
+
+
+    public void loadVideoInTop(Uri videoUri, String mimeType) {
+        String htmlContent = "<html><head><style>"
+                + "body, html { height: 100%; margin: 0; }"
+                + "video { width: 100%; height: auto; }"  // Adjusted video styling
+                + "</style><script>"
+                + "</script></head><body>"
+                + "<video id='video' controls autoplay>"
+                + "<source src='" + videoUri + "' type='" + mimeType + "'>"
+                + "</video>"
+                + "</body></html>";
+
+        nyWebView.loadDataWithBaseURL(null, htmlContent, "text/html", "utf-8", null);
+    }
+
+
+    private void hideButtons() {
+        mainShuffle.setVisibility(View.INVISIBLE);
+        //miniShuffle.setVisibility(View.INVISIBLE);
+        mainPrev.setVisibility(View.INVISIBLE);
+        miniPrev.setVisibility(View.INVISIBLE);
+        mainNext.setVisibility(View.INVISIBLE);
+        miniNext.setVisibility(View.INVISIBLE);
+    }
+
+
+    private void processList() {
+
+        if (fileList != null) {
+            if (vIndex < 0) vIndex = fileList.size() - 1;
+            else if (vIndex > fileList.size() - 1) vIndex = 0;
+            currUrl = fileList.get(vIndex).getPath();
+        }
+        //always start with autoplay
+        playOn = true;
+        adjustPlayerIcon();
+        if (!isOnline(currUrl) && !currUrl.contains("file://")) currUrl = "file://" + currUrl;
+        releaseWebResources();
+        nyWebView.onResume(); //necessary for continuation of from pause to play
+        displayMedia(new NyHybrid(Uri.parse(currUrl)));
+    }
+
+    private void releaseWebResources() {
+        // Stop video playback
+        nyWebView.evaluateJavascript("document.getElementById('video').pause();", null);
+
+        // Remove video element from DOM
+        nyWebView.evaluateJavascript("document.getElementById('video').parentNode.removeChild(document.getElementById('video'));", null);
+
+        // Clear WebView cache (optional)
+        nyWebView.clearCache(true); // Pass true to clear the entire cache
+        // Pass false to clear only the application cache
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (nyWebView != null) nyWebView.onResume();
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (nyWebView != null) nyWebView.onPause();
+            }
+        });
+    }
+
+
+    protected void initBottomSheet() {
+        mainPlayer = root.findViewById(R.id.main_player_layout);
+        //  playerType = root.findViewById(R.id.nyplayer);
+        mainTitle = root.findViewById(R.id.main_title);
+        mainInfo = root.findViewById(R.id.main_info);
+        mainThumb = root.findViewById(R.id.main_thumb);
+        mainPrev = root.findViewById(R.id.main_prev);
+        mainNext = root.findViewById(R.id.main_next);
+        mainPlay = root.findViewById(R.id.main_play);
+        mainEnd = root.findViewById(R.id.main_end);
+        mainShuffle = root.findViewById(R.id.main_shuffle);
+
+        miniPlayer = root.findViewById(R.id.mini_player_layout);
+        miniTitle = root.findViewById(R.id.mini_title);
+        miniInfo = root.findViewById(R.id.mini_info);
+        miniThumb = root.findViewById(R.id.mini_thumb);
+        miniPrev = root.findViewById(R.id.mini_prev);
+        miniNext = root.findViewById(R.id.mini_next);
+        miniPlay = root.findViewById(R.id.mini_play);
+        miniEnd = root.findViewById(R.id.mini_end);
+        //  miniShuffle = root.findViewById(R.id.mini_shuffle);
+
+        // Define the desired alpha value (from 0 to 255)
+        int alphaValue = 50; // For example, set to 50 for approximately 20% opacity
+
+        // Create a color with the desired alpha value
+        semiTransparentColor = Color.argb(alphaValue, 255, 255, 255); // Set RGB to white (255, 255, 255)
+
+        // Set the background color of the ConstraintLayout
+        // mainPlayer.setBackgroundColor(semiTransparentColor);
+        miniPlayer.setBackgroundColor(semiTransparentColor);
+
+        //marqueAnim = AnimationUtils.loadAnimation(this, R.anim.left_to_right);
+
+        miniPlayer.setOnClickListener(this);
+        miniPrev.setOnClickListener(this);
+        miniNext.setOnClickListener(this);
+        miniPlay.setOnClickListener(this);
+        miniEnd.setOnClickListener(this);
+        //  miniList.setOnClickListener(this);
+        //   miniShuffle.setOnClickListener(this);
+
+        mainThumb.setOnClickListener(this);
+        mainPlayer.setOnClickListener(this);
+        mainPrev.setOnClickListener(this);
+        mainNext.setOnClickListener(this);
+        mainPlay.setOnClickListener(this);
+        mainEnd.setOnClickListener(this);
+        //  mainList.setOnClickListener(this);
+        mainShuffle.setOnClickListener(this);
+
+
+        ConstraintLayout layoutBottomSheet = (ConstraintLayout) root.findViewById(R.id.lDisplay);
+        // layoutBottomSheet.setSoundEffectsEnabled(true);
+        sheetBehavior = (nyBottomSheetBehavior) BottomSheetBehavior.from(layoutBottomSheet);
+        //------------------
+        //TODO ny
+        sheetBehavior.setPeekHeight(dp2px(mActivity, 55));
+
+        sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+        //----------------
+        sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        activityUiAction(true);
+                        //TODO do not end
+                        //  remove(NyDisplayFragment.this);
+                        break;
+                    case BottomSheetBehavior.STATE_EXPANDED: {
+                        activityUiAction(false);
+                        miniPlayer.setVisibility(View.GONE);
+                        mainPlayer.setVisibility(VISIBLE);
+                    }
+                    break;
+                    case BottomSheetBehavior.STATE_COLLAPSED: {
+                         activityUiAction(true);
+                        mainPlayer.setVisibility(View.GONE);
+                        miniPlayer.setVisibility(VISIBLE);
+                    }
+                    break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                        activityUiAction(true);
+                        miniPlayer.setVisibility(View.INVISIBLE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // if (nyWebView != null) nyWebView.setAlpha(slideOffset);
+            }
+        });
+
+    }
+
+    @Override
+    public void onClick(View view) {
+        int viewId = view.getId();
+        if (viewId == R.id.main_thumb) {
+           /* if (nyWebView != null) nyWebView.onPause();
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            onBackPressed();
+            remove(this);*/
+        } else if (viewId == R.id.mini_player_layout) {
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        } else if (viewId == R.id.main_player_layout) {//video switch btw frames
+            if (nyWebView != null) nyWebView.onPause();
+        } else if (viewId == R.id.mini_prev || viewId == R.id.main_prev) {
+            backwardSlide = true;
+            // the above for imageslide
+            vIndex--;
+            processList();
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        } else if (viewId == R.id.mini_next || viewId == R.id.main_next) {
+            backwardSlide = false;
+            // the above for imageslide
+            vIndex++;
+            processList();
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        } else if (viewId == R.id.main_play || viewId == R.id.mini_play) {
+            playOn = !playOn;
+            //TODO ny
+            if (nyWebView != null) {
+                if (playOn) nyWebView.onResume();
+                else nyWebView.onPause();
+            }
+            adjustPlayerIcon();
+            if (nyWebView != null && isImage(currUrl) && playOn)
+                slideTiming(new Handler(), Update, 0, slideInterval);
+        } else if (viewId == R.id.main_end || viewId == R.id.mini_end) {
+            playOn = false;
+            remove(this);
+        } else if (viewId == R.id.main_shuffle /*|| viewId == R.id.mini_shuffle*/) {
+            Collections.shuffle(fileList, new Random());
+            processList();
+        }
+    }
+
+    private void slideTiming(final Handler h, final Runnable run, int delay, int period) {
+        setupWebView();
+        if (fileList == null || fileList.size() == 1) {
+            processList();
+            return;
+        }
+        if (swipeTimer != null) swipeTimer.cancel();
+        swipeTimer = new Timer();
+        swipeTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (playOn && fileList.size() > 1) h.post(run);
+            }
+        }, delay, period);
+    }
+
+    private Runnable Update = new Runnable() {
+        public void run() {
+            processList();
+            if (backwardSlide) vIndex--;
+            else vIndex++;
+            SlideOn = true;
+        }
+    };
+
+
+    private void adjustPlayerIcon() {
+        if (playOn) {
+            mainPlay.setImageResource(R.drawable.ic_pause);
+            miniPlay.setImageResource(R.drawable.ic_pause);
+        } else {
+            mainPlay.setImageResource(R.drawable.ic_play);
+            miniPlay.setImageResource(R.drawable.ic_play);
+        }
+    }
+
+    private void initListSub() {
+        ArrayList<String> listItems = new ArrayList<>();
+        for (int i = 0; i < fileList.size(); i++) {
+            String name = fileList.get(i).getName();
+            if (hybridFile.getName().equals(name)) vIndex = i;
+            listItems.add(name);
+        }
+
+        mListSub = (ListView) root.findViewById(R.id.list_sub);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
+                android.R.layout.simple_list_item_1, listItems);
+        mListSub.setAdapter(adapter);
+
+        mListSub.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                // mListSub.setVisibility(View.GONE);
+                sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                vIndex = i;
+                processList();
+            }
+        });
+
+        mainShuffle.setVisibility(fileList.size() > 1 ? VISIBLE : View.GONE);
+        //  miniShuffle.setVisibility(fileList.size() > 1 ? VISIBLE : View.GONE);
+    }
+
+
+    // @Override
+    public void destroy() {
+        //must be executed first
+        if (sheetBehavior != null) sheetBehavior = null;
+        if (swipeTimer != null) swipeTimer.cancel();
+        if (nyWebView != null) {
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    nyWebView.onPause();
+                    nyWebView.clearHistory();
+                    nyWebView.clearCache(true);
+                    nyWebView.clearFormData();
+                    nyWebView.removeJavascriptInterface("channel");
+                    nyWebView.destroy();
+                    //  maybeCloseInputStream();
+                    nyWebView = null;
+                }
+            });
+
+        }
+        activityUiAction(true);
+    }
+
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        adjustSystemUIVisibility(requireActivity());
+
+        sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        //  if (hybridFile.getMimeType().contains("video")) adjustVideoSize();
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            mainPlayer.setVisibility(View.VISIBLE);
+            mainPlayer.setBackgroundColor(getContext().getResources().getColor(R.color.colorSilver));
+            mainShuffle.setVisibility(View.GONE);
+        } else if (newConfig.orientation != ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT) { //inlandscape
+            SystemUtils.hideSystemUI(getContext());
+            mainShuffle.setVisibility(VISIBLE);
+            mainPlayer.setBackgroundColor(semiTransparentColor);
+            mainPlayer.setVisibility(View.INVISIBLE);
+        }
+
+        activityUiAction(sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED);
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        //return true for already handle by Fragment itself
+        //do not allow onBack to exit this fragment, the fragment must be destroyed with OnDestroyed();
+        //TODO ny handle fullscreen goback
+        if (sheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            return true;
+        } else return false;
+    }
+
+
+    protected void activityUiAction(boolean show) {
+      /*  mainHandler.post(new Runnable() {
+            @Override
+            public void run() {*/
+
+                ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
+
+                if (actionBar != null) {
+                    if (show) {
+                        View decorView = requireActivity().getWindow().getDecorView();
+                        int uiOptions = 0;
+                        decorView.setSystemUiVisibility(uiOptions);
+                        actionBar.show();
+                    } else {
+                        actionBar.hide();
+                        // TODO ny do not use actionBar.hide()
+                        hideSystemUI(requireActivity());
+                    }
+                }
+           // }
+       // });
+    }
+
+
+    //--------------------------------------------------------------------//
+
+ /*   private MediaPlaybackService mediaService;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            MediaPlaybackService.LocalBinder binder = (MediaPlaybackService.LocalBinder) service;
+            mediaService = binder.getService();
+            mediaService.setWebView(nyWebView); // Pass the WebView reference to the Service
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+        }
+    };
+
+    private void bindToService() {
+        Intent intent = new Intent(getActivity(), MediaPlaybackService.class);
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    // Method to unbind from the Service
+    private void unbindFromService() {
+        getActivity().unbindService(mConnection);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        bindToService();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unbindFromService();
+    }*/
+
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_image">
+
+
+    <com.nytaiji.zoom.ZoomNrotateLinear
+        android:id="@+id/zoom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:double_click_zoom="2.0"
+        app:max_zoom="4.0"
+        app:min_zoom="1.0">
+
+
+        <FrameLayout
+            android:id="@+id/surface_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </FrameLayout>
+
+    </com.nytaiji.zoom.ZoomNrotateLinear>
+
+    <!--> <com.github.mmin18.widget.RealtimeBlurView
+           android:id="@+id/blur_view"
+           android:layout_width="560dp"
+           android:layout_height="460dp"
+           android:layout_gravity="center"
+           app:realtimeBlurRadius="25dp"/>-->
+
+
+    <FrameLayout
+        android:id="@+id/blur_view"
+        android:layout_width="460dp"
+        android:layout_height="460dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:background="@color/transparent">
+
+        <FrameLayout
+            android:id="@+id/center_view"
+            android:layout_width="360dp"
+            android:layout_height="360dp"
+            android:layout_gravity="center"
+            android:background="@color/colorWhite" />
+
+        <TextView
+            android:id="@+id/remind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:singleLine="false"
+            android:textAlignment="center"
+            android:text="@string/donationneeded"
+            android:textColor="@android:color/holo_red_light" />
+
+    </FrameLayout>
+
+    <include
+        layout="@layout/extra_control"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="left|top"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/banner" />
+
+    <TextView
+        android:id="@+id/float_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:gravity="center"
+        android:text="Guest"
+        android:textColor="@color/colorAccent"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+
+    <TextView
+        android:id="@+id/text_reg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:layout_gravity="center_vertical"
+        android:text="Unreqistered copy, please register!"
+        android:textColor="@color/colorOrange"
+        android:textSize="20sp" />
+
+</FrameLayout>

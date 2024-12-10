@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background_dialog">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/server_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Server Type"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginTop="8dp"
+                android:background="@color/colorGold" />
+        </RelativeLayout>
+
+        <RadioGroup
+            android:id="@+id/server_rg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <RadioButton
+                android:id="@+id/streamer_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="STREAMER"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:text="One-to-one"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/webshare_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Http Server"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:text="Without Ftlename"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/streamer_amaze_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Amaze Streamer"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:text="Fast for normal files"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/smb_amaze_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Amaze Streamer"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:text="Fast for normal files"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+
+            <RadioButton
+                android:id="@+id/smb_server_rb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SMB server"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30dp"
+                android:text="Fast for normal files"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/range_rg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+
+            <RadioButton
+                android:id="@+id/internal_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Internal"
+                android:textColor="@color/black" />
+
+            <RadioButton
+                android:id="@+id/external_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="External"
+                android:textColor="@color/black" />
+
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/cancel_tv"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_dialog_button_negative"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="取消"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/confirm_tv"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/background_dialog_button_positive"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="确定"
+                android:textColor="@color/colorAccent"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

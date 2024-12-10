@@ -1,3 +1,8 @@
 include  ':doubletapplayerview'//, 'android-file-chooser'
-include ':file_operations',':nyBase',':nyApp'
+include ':file_operations',':nyApp'
+include ':PurePlayer'
+include ':InternalLibs:core', ':InternalLibs:epf', ':InternalLibs:nyBase', ':InternalLibs:zoomGroup'
+include ':InternalLibs:nyCloud', ':InternalLibs:caster', ':InternalLibs:drawview'
+include ':InternalLibs:nyFanplayer', ':InternalLibs:nyExoPlayer', ':InternalLibs:nyMedia3Player', ':InternalLibs:nyVlcPlayer'
+
 rootProject.name = "nyPlayer"

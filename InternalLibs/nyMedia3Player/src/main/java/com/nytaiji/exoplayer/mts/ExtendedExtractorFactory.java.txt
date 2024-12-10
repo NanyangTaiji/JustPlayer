@@ -1,0 +1,18 @@
+package com.nytaiji.exoplayer.mts;
+
+import androidx.media3.extractor.DefaultExtractorsFactory;
+import androidx.media3.extractor.Extractor;
+import androidx.media3.extractor.ExtractorsFactory;
+
+public class ExtendedExtractorFactory implements ExtractorsFactory {
+    @Override
+    public Extractor[] createExtractors() {
+        // Extend the default extractors with your custom extractor
+        Extractor[] defaultExtractors = new DefaultExtractorsFactory().createExtractors();
+        Extractor[] customExtractors = new Extractor[defaultExtractors.length + 1];
+        System.arraycopy(defaultExtractors, 0, customExtractors, 0, defaultExtractors.length);
+        customExtractors[defaultExtractors.length] = new MtsExtractor();
+        return customExtractors;
+    }
+}
+

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">20dp</dimen>
+
+    <dimen name="progress_bar_size">70dp</dimen>
+    <dimen name="progress_bar_small_size">60dp</dimen>
+    <dimen name="default_stroke_width">4dp</dimen>
+    <integer name="default_min_sweep_angle">20</integer>
+    <integer name="default_max_sweep_angle">300</integer>
+    <item name="default_sweep_speed" format="float" translatable="false" type="string">1</item>
+    <item name="default_rotation_speed" format="float" translatable="false" type="string">1</item>
+
+    <dimen name="scroll_threshold">4dp</dimen>
+
+    <dimen name="downwards_drop_shadow_height">16dp</dimen>
+
+    <dimen name="smaller_text">13sp</dimen>
+    <dimen name="small_text">14sp</dimen>
+    <dimen name="medium_text">16sp</dimen>
+    <dimen name="large_text">18sp</dimen>
+    <dimen name="dialog_title">18sp</dimen>
+    <dimen name="dialog_button">14sp</dimen>
+    <dimen name="dialog_button_width">64dp</dimen>
+    <dimen name="dialog_button_height">36dp</dimen>
+
+    <dimen name="default_context_width">@dimen/custom_match_parent</dimen>
+    <dimen name="custom_match_parent">-1px</dimen>
+
+    <!-- Control panel -->
+    <dimen name="detail_control_text_size">12sp</dimen>
+    <dimen name="detail_control_width">80dp</dimen>
+    <dimen name="detail_control_height">55dp</dimen>
+    <dimen name="detail_control_padding">6dp</dimen>
+</resources>

@@ -1,0 +1,706 @@
+package com.nytaiji.online.util;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
+import android.media.audiofx.BassBoost;
+import android.media.audiofx.Equalizer;
+import android.media.audiofx.LoudnessEnhancer;
+import android.media.audiofx.PresetReverb;
+import android.media.audiofx.Virtualizer;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+
+import static android.content.Context.AUDIO_SERVICE;
+
+import androidx.appcompat.app.AlertDialog;
+
+
+public class EqualizerUtil {
+    public static Virtualizer virtualizerV = null;
+    public static LoudnessEnhancer loudnessEnhancerV = null;
+    public static BassBoost bassBoostV = null;
+    public static Equalizer mEqualizerV = null;
+    public static PresetReverb presetReverbV = null;
+
+    //--//
+
+    public static int equalizerIndex = 5;
+    public static short trableGain = 0;
+    public static int loudGain = 50;
+    public static short bassGain = 500;
+    public static short virtualGain = 500;
+    public static short reverb = 0;
+    public static float left = 1.0f;
+    public static float right = 1.0f;
+    public static float tempo = 1.0f;
+    public static short bandRange;
+    private static String[] music_styles;
+    private static short m;
+    public static int reverbIndex = 0;
+    static int maxVolume;
+    private static int percentVol;
+
+    private Croller volKnob, trableKnob, tempoKnob, balanceKnob, loudKnob, bassKnob, virtualKnob;
+    private TextView volText, trableText, tempoText, balanceText, loudText, bassText, virtualText;
+
+    private final Context context;
+    static AudioManager mAudioManager;
+    static int volLevel;
+    private static SharedPreferences sharedPrefernces;
+    private static SharedPreferences.Editor editor;
+    static short trableMax = 1500;
+    private int channelprogress = 10;
+    private int tempoProgress = 5;
+    private int leftRead;
+    private int rightRead;
+
+    public EqualizerUtil(Context context, SharedPreferences sharedPreferences) {
+        this.context = context;
+        sharedPrefernces = sharedPreferences;
+        editor = sharedPrefernces.edit();
+
+        mAudioManager = (AudioManager) context.getApplicationContext().getSystemService(AUDIO_SERVICE);
+        if (mAudioManager != null)
+            maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        percentVol = (int) (maxVolume * 0.4f);
+
+        equalizerIndex = sharedPrefernces.getInt("Equalizer", 5);
+        reverbIndex = sharedPrefernces.getInt("reverb", 0);
+    }
+
+
+    public void startEqualizers(int audioId) {
+        Log.e("EquaizerUtl","audioId = "+audioId);
+       /* new Thread() {
+            @Override
+            public void run() {
+                NyFileUtil.getActivity(context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {*/
+                        initView();
+                        formatKnobs();
+                      //  initKnobListeners();
+                        //
+                        loadEqualizers(equalizerIndex, audioId);
+                        initBass(context, audioId, (short) sharedPrefernces.getInt("BassValue", 1000));
+                        initVirtualizer(context, audioId, (short) sharedPrefernces.getInt("VirtualValue", 1000));
+                        initLoudnessEnhancer(context, audioId, (short) sharedPrefernces.getInt("LoudValue", 0));
+                        trableBoost(context, (short) sharedPrefernces.getInt("TrableValue", 0));
+                        initReverb((short) reverbIndex, audioId);
+                  /*  }
+                });
+            }
+        }.start();*/
+    }
+
+    private void initView() {
+        String temp;
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View root = inflater.inflate(R.layout.equalizer_layout, null);
+        volKnob = root.findViewById(R.id.volume_knob);
+        volKnob.setMax(mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+        volKnob.setProgress(mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+        volText = root.findViewById(R.id.volume_text);
+        temp= String.valueOf(mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+        volText.setText(temp);
+
+        loudKnob = root.findViewById(R.id.loud_knob);
+        loudKnob.setProgress((sharedPrefernces.getInt("LoudValue", 50)) / 10);
+        loudText = root.findViewById(R.id.loud_text);
+        temp= String.valueOf((sharedPrefernces.getInt("LoudValue", 50)) / 10);
+        loudText.setText(temp);
+
+        bassKnob = root.findViewById(R.id.bassKnob);
+        bassKnob.setProgress(((sharedPrefernces.getInt("BassValue", 500)) / 100));
+        bassText = root.findViewById(R.id.bass_text);
+        temp= String.valueOf((sharedPrefernces.getInt("BassValue", 500)) / 100);
+        bassText.setText(temp);
+
+        virtualKnob = root.findViewById(R.id.virtualKnob);
+        virtualKnob.setProgress((sharedPrefernces.getInt("VirtualValue", 500)) / 100);
+        virtualText = root.findViewById(R.id.virtual_text);
+        temp= String.valueOf((sharedPrefernces.getInt("VirtualValue", 500)) / 100);
+        virtualText.setText(temp);
+
+        trableKnob = root.findViewById(R.id.trableKnob);
+        int trableProgress;
+        if (sharedPrefernces.getInt("TrableValue", 0) > 0)
+            trableProgress = sharedPrefernces.getInt("TrableValue", 0) / 100;
+        else
+            trableProgress = sharedPrefernces.getInt("TrableValue", 0);
+        trableKnob.setMax(trableMax / 100);
+        trableKnob.setProgress(trableProgress);
+        trableText = root.findViewById(R.id.trable_text);
+        trableText.setText(String.valueOf(trableProgress));
+
+        balanceKnob = root.findViewById(R.id.channel_knob);
+        balanceKnob.setMax(20);
+        balanceKnob.setMin(0);
+        balanceKnob.setProgress(channelprogress);
+        balanceText = root.findViewById(R.id.channel_text);
+        balanceText.setText(String.valueOf(channelprogress));
+
+        tempoKnob = root.findViewById(R.id.tempo_knob);
+        tempoKnob.setProgress(tempoProgress);
+        tempoKnob.setMax(10);
+        tempoKnob.setMin(0);
+        tempoText = root.findViewById(R.id.tempo_text);
+        tempoText.setText(String.valueOf(tempoProgress));
+
+        new AlertDialog.Builder(context)
+                .setView(root)
+                .setTitle("Equalizer")
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void formatKnobs() {
+
+        float density = context.getResources().getDisplayMetrics().density;
+        if (density <= DisplayMetrics.DENSITY_XHIGH) {
+            volKnob.setProgressRadius(95);
+            loudKnob.setProgressRadius(95);
+            bassKnob.setProgressRadius(95);
+            virtualKnob.setProgressRadius(95);
+            trableKnob.setProgressRadius(95);
+            balanceKnob.setProgressRadius(95);
+            tempoKnob.setProgressRadius(95);
+        } else if (density <= DisplayMetrics.DENSITY_420) {
+            volKnob.setProgressRadius(123);
+            volKnob.setProgressPrimaryStrokeWidth(10);
+            loudKnob.setProgressRadius(123);
+            loudKnob.setProgressPrimaryStrokeWidth(10);
+            bassKnob.setProgressRadius(123);
+            bassKnob.setProgressPrimaryStrokeWidth(10);
+            virtualKnob.setProgressRadius(123);
+            virtualKnob.setProgressPrimaryStrokeWidth(10);
+            trableKnob.setProgressRadius(123);
+            trableKnob.setProgressPrimaryStrokeWidth(10);
+            balanceKnob.setProgressRadius(123);
+            balanceKnob.setProgressPrimaryStrokeWidth(10);
+            tempoKnob.setProgressRadius(123);
+            tempoKnob.setProgressPrimaryStrokeWidth(10);
+        } else if (density <= DisplayMetrics.DENSITY_440) {
+            volKnob.setProgressRadius(130);
+            volKnob.setProgressPrimaryStrokeWidth(12);
+            loudKnob.setProgressRadius(130);
+            loudKnob.setProgressPrimaryStrokeWidth(12);
+            bassKnob.setProgressRadius(130);
+            bassKnob.setProgressPrimaryStrokeWidth(12);
+            virtualKnob.setProgressRadius(130);
+            virtualKnob.setProgressPrimaryStrokeWidth(12);
+            trableKnob.setProgressRadius(130);
+            trableKnob.setProgressPrimaryStrokeWidth(12);
+            balanceKnob.setProgressRadius(130);
+            balanceKnob.setProgressPrimaryStrokeWidth(12);
+            tempoKnob.setProgressRadius(130);
+            tempoKnob.setProgressPrimaryStrokeWidth(12);
+        } else if (density <= DisplayMetrics.DENSITY_XXHIGH) {
+            volKnob.setProgressRadius(141);
+            volKnob.setProgressPrimaryStrokeWidth(10);
+            loudKnob.setProgressRadius(141);
+            loudKnob.setProgressPrimaryStrokeWidth(10);
+            bassKnob.setProgressRadius(141);
+            bassKnob.setProgressPrimaryStrokeWidth(10);
+            virtualKnob.setProgressRadius(141);
+            virtualKnob.setProgressPrimaryStrokeWidth(10);
+            trableKnob.setProgressRadius(141);
+            trableKnob.setProgressPrimaryStrokeWidth(10);
+            balanceKnob.setProgressRadius(141);
+            balanceKnob.setProgressPrimaryStrokeWidth(10);
+            tempoKnob.setProgressRadius(141);
+            tempoKnob.setProgressPrimaryStrokeWidth(10);
+        } else if (density <= DisplayMetrics.DENSITY_560) {
+            volKnob.setProgressRadius(164);
+            volKnob.setProgressPrimaryStrokeWidth(12);
+            loudKnob.setProgressRadius(164);
+            loudKnob.setProgressPrimaryStrokeWidth(12);
+            bassKnob.setProgressRadius(164);
+            bassKnob.setProgressPrimaryStrokeWidth(12);
+            virtualKnob.setProgressRadius(164);
+            virtualKnob.setProgressPrimaryStrokeWidth(12);
+            trableKnob.setProgressRadius(164);
+            trableKnob.setProgressPrimaryStrokeWidth(12);
+            balanceKnob.setProgressRadius(164);
+            balanceKnob.setProgressPrimaryStrokeWidth(12);
+            tempoKnob.setProgressRadius(164);
+            tempoKnob.setProgressPrimaryStrokeWidth(12);
+        } else if (density <= DisplayMetrics.DENSITY_XXXHIGH) {
+            volKnob.setProgressRadius(195);
+            volKnob.setProgressPrimaryStrokeWidth(13);
+            loudKnob.setProgressRadius(195);
+            loudKnob.setProgressPrimaryStrokeWidth(13);
+            bassKnob.setProgressRadius(195);
+            bassKnob.setProgressPrimaryStrokeWidth(13);
+            virtualKnob.setProgressRadius(195);
+            virtualKnob.setProgressPrimaryStrokeWidth(13);
+            trableKnob.setProgressRadius(195);
+            trableKnob.setProgressPrimaryStrokeWidth(13);
+            balanceKnob.setProgressRadius(195);
+            balanceKnob.setProgressPrimaryStrokeWidth(13);
+            tempoKnob.setProgressRadius(195);
+            tempoKnob.setProgressPrimaryStrokeWidth(13);
+        } else {
+            Toast.makeText(context, "Thrown Screen Density is: " + density, Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    public void initKnobListeners() {
+
+        volKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+                editor.putInt("PlayVol", progress).apply();
+                volText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+                volLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                editor.putInt("volLevel", volLevel).apply();
+                volText.setText(volLevel);
+            }
+        });
+
+        loudKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                loudText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+            }
+        });
+
+
+        bassKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                bassText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+                // tracking stopped
+            }
+        });
+
+        virtualKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                virtualText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+                // tracking stopped
+            }
+        });
+
+
+        trableKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                trableText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+                // tracking stopped
+            }
+        });
+
+
+        balanceKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                //   mStatusUpdateHandler.removeCallbacks(mUpdateStatus);
+                channelprogress = progress;
+
+                if (progress < 10) {
+                    left = ((float) progress) / 10f;
+                    right = 1.0f;
+                    leftRead = -(10 - progress);
+                } else if (progress > 10) {
+                    right = ((float) (progress - ((progress - 10) * 2))) / 10f;
+                    left = 1.0f;
+                    rightRead = -(10 - (progress - ((progress - 10) * 2)));
+                } else {
+                    left = 1.0f;
+                    right = 1.0f;
+                    leftRead = 0;
+                    rightRead = 0;
+                    //   Vibration.Companion.vibrate(20);
+                }
+                balanceText.setText(left+":"+right);
+                //     resultReceiver = new AudioTokenReceiver(new Handler(Objects.requireNonNull(Looper.myLooper())));
+             //   Bundle bundleCB = new Bundle();
+             //   bundleCB.putFloat("left", left);
+             //   bundleCB.putFloat("right", right);
+
+             //   Log.e("ProgressVol", "onProgressChanged: " + progress);
+
+
+            //    Log.d("ChannelProgressVal", "onProgressChanged:Left: " + left);
+            //    Log.d("ChannelProgressVal", "onProgressChanged:Right: " + right);
+
+                editor.putInt("CP", progress);
+                editor.putInt("leftRead", leftRead);
+                editor.putInt("rightRead", rightRead);
+                editor.commit();
+
+             //   Log.d("balanceKnob", "onProgressChanged:Balance: " + progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+                // tracking started
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+
+            }
+        });
+
+
+        tempoKnob.setOnCrollerChangeListener(new OnCrollerChangeListener() {
+            @Override
+            public void onProgressChanged(Croller croller, int progress) {
+                //   mStatusUpdateHandler.removeCallbacks(mUpdateStatus);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    tempoKnob.setEnabled(false);
+                    return;
+                }
+                switch (progress) {
+                    case 0:
+                        tempo = 0.5f;
+                        break;
+                    case 1:
+                        tempo = 0.6f;
+                        break;
+                    case 2:
+                        tempo = 0.7f;
+                        break;
+                    case 3:
+                        tempo = 0.8f;
+                        break;
+                    case 4:
+                        tempo = 0.9f;
+                        break;
+                    case 5:
+                        tempo = 1.0f;
+                        //   Vibration.Companion.vibrate(20);
+                        break;
+                    case 6:
+                        tempo = 1.2f;
+                        break;
+                    case 7:
+                        tempo = 1.4f;
+                        break;
+                    case 8:
+                        tempo = 1.6f;
+                        break;
+                    case 9:
+                        tempo = 1.8f;
+                        break;
+                    case 10:
+                        tempo = 2.0f;
+                        break;
+                }
+                tempoProgress = progress;
+
+                //   resultReceiver = new AudioTokenReceiver(new Handler(Objects.requireNonNull(Looper.myLooper())));
+                Bundle bundleTMP = new Bundle();
+                bundleTMP.putFloat("tempo", tempo);
+
+                editor.putInt("tempoProgress", progress);
+                editor.commit();
+                tempoText.setText(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(Croller croller) {
+
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    tempoKnob.setEnabled(false);
+                    return;
+                }
+                // tracking started
+            }
+
+            @Override
+            public void onStopTrackingTouch(Croller croller) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    tempoKnob.setEnabled(false);
+                }
+
+            }
+        });
+
+    }
+
+    //-------------------------------------------------------------------------------------------//
+
+    //--------------------------------------
+    public static void initVirtualizer(Context context, int audioID, short strength) {
+        EndVirtual();
+        try {
+            virtualizerV = new Virtualizer(1000, audioID);
+            if (strength > 0) {
+                setVirtualizerStrength(context, strength);
+            } else {
+                setVirtualizerStrength(context, (short) 0);
+            }
+            virtualizerV.setEnabled(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setVirtualizerStrength(Context context, short strength) {
+        if (virtualizerV != null && virtualizerV.getStrengthSupported() && strength >= 0) {
+            try {
+                if (strength <= 1000) {
+                    virtualizerV.setStrength(strength);
+
+                    editor.putInt("VirtualValue", strength);
+                    editor.commit();
+                }
+            } catch (IllegalArgumentException e) {
+                Log.e("Virtualizers", "Virtualizers effect not supported");
+            } catch (IllegalStateException e) {
+                Log.e("Virtualizers", "Virtualizers cannot get strength supported");
+            } catch (UnsupportedOperationException e) {
+                Log.e("Virtualizers", "Virtualizers library not loaded");
+            } catch (RuntimeException e) {
+                Log.e("Virtualizers", "Virtualizers effect not found");
+            }
+        }
+
+    }
+
+    public static void EndVirtual() {
+        if (virtualizerV != null) {
+            virtualizerV.release();
+            virtualizerV = null;
+        }
+    }
+
+
+    public static void initLoudnessEnhancer(Context context, int audioID, int loud) {
+        EndLoudnessEnhancer();
+        try {
+            loudnessEnhancerV = new LoudnessEnhancer(audioID);
+            setLoudnessEnhancerGain(context, Math.max(loud, 0));
+            loudnessEnhancerV.setEnabled(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setLoudnessEnhancerGain(Context context, int gain) {
+        if (loudnessEnhancerV != null && gain >= 0) {
+            try {
+                if (gain <= 1000) {
+                    loudnessEnhancerV.setTargetGain(gain);
+
+                    editor.putInt("LoudValue", gain);
+                    editor.commit();
+                }
+            } catch (IllegalArgumentException e) {
+                Log.e("Loud", "Loud effect not supported");
+            } catch (IllegalStateException e) {
+                Log.e("Loud", "Loud cannot get gain supported");
+            } catch (UnsupportedOperationException e) {
+                Log.e("Loud", "Loud library not loaded");
+            } catch (RuntimeException e) {
+                Log.e("Loud", "Loud effect not found");
+            }
+        }
+
+    }
+
+    public static void EndLoudnessEnhancer() {
+        if (loudnessEnhancerV != null) {
+            loudnessEnhancerV.release();
+            loudnessEnhancerV = null;
+        }
+    }
+
+
+    public static void initBass(Context context, int audioID, int bassVal) {
+        EndBass();
+        try {
+            bassBoostV = new BassBoost(1000, audioID);
+            short savestr = (short) bassVal;
+            if (savestr > 0) {
+                setBassBoostStrength(context, savestr);
+
+            } else {
+                setBassBoostStrength(context, (short) 0);
+            }
+            bassBoostV.setEnabled(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setBassBoostStrength(Context context, short strength) {
+        if (bassBoostV != null && bassBoostV.getStrengthSupported() && strength >= 0) {
+            try {
+                if (strength <= 1000) {
+                    bassBoostV.setStrength(strength);
+                    editor.putInt("BassValue", strength);
+                    editor.commit();
+                }
+            } catch (IllegalArgumentException e) {
+                Log.e("BassBoosts", "Bassboost effect not supported");
+            } catch (IllegalStateException e) {
+                Log.e("BassBoosts", "Bassboost cannot get strength supported");
+            } catch (UnsupportedOperationException e) {
+                Log.e("BassBoosts", "Bassboost library not loaded");
+            } catch (RuntimeException e) {
+                Log.e("BassBoosts", "Bassboost effect not found");
+            }
+        }
+    }
+
+    public static void EndBass() {
+        if (bassBoostV != null) {
+            bassBoostV.release();
+            bassBoostV = null;
+        }
+    }
+
+
+    public static void trableBoost(Context context, short val) {
+
+        try {
+            if (val > 0) {
+                mEqualizerV.setBandLevel((short) 4, val);
+                mEqualizerV.setBandLevel((short) 3, val);
+            } else {
+                switchEq(context, equalizerIndex);
+            }
+
+            editor.putInt("TrableValue", val);
+            editor.commit();
+        } catch (Throwable e) {
+            Log.e("TrableException", "Exception Raised in Trable: " + e);
+        }
+    }
+
+
+    public static void initReverb(short strength, int audioId) {
+        EndReverb();
+        try {
+            if (strength != 0) {
+                presetReverbV = new PresetReverb(1, audioId);
+                presetReverbV.setPreset(strength);
+                presetReverbV.setEnabled(true);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void EndReverb() {
+        if (presetReverbV != null) {
+            presetReverbV.setEnabled(false);
+            presetReverbV.release();
+            presetReverbV = null;
+        }
+    }
+
+
+    public static void switchEq(Context context, int index) {
+
+        try {
+            mEqualizerV.usePreset((short) index);
+            //mEqualizerV.setEnabled(true);
+            equalizerIndex = index;
+            trableGain = 0;
+            editor.putInt("Equalizer", equalizerIndex);
+            editor.putInt("TrableValue", 0);
+            editor.commit();
+
+        } catch (Throwable e) {
+            Log.e("EqualizerException", "Exception Raised in Switch Equalizer: " + e);
+
+        }
+
+    }
+
+    public static void EndEqualizers() {
+        if (mEqualizerV != null) {
+            mEqualizerV.release();
+            mEqualizerV = null;
+        }
+    }
+
+
+    public static void loadEqualizers(int presetNum, int audioId) {
+
+        EndEqualizers();
+        mEqualizerV = new Equalizer(1000, audioId);
+        short m = mEqualizerV.getNumberOfPresets();
+        bandRange = mEqualizerV.getBandLevelRange()[1];
+        music_styles = new String[m];
+        for (int k = 0; k < m; k++) {
+            music_styles[k] = mEqualizerV.getPresetName((short) k);
+            Log.d("Equalizers", "Names: " + music_styles[k]);
+        }
+        mEqualizerV.usePreset((short) presetNum);
+
+        //  Log.d("EqualizerSet", "EqualizerIndex: " + num + " AudioId:" + audioId);
+
+        mEqualizerV.setEnabled(true);
+        equalizerIndex = presetNum;
+    }
+
+
+    public static void clearEqualizers() {
+        EndEqualizers();
+        EndBass();
+        EndVirtual();
+        EndLoudnessEnhancer();
+        EndReverb();
+    }
+
+
+}

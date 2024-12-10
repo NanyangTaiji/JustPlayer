@@ -1,0 +1,50 @@
+apply plugin: 'com.android.library'
+
+group = 'com.nytaiji.library'
+
+
+android {
+    compileSdk 33
+    namespace 'com.nytaiji.vlcplayer'
+    packagingOptions {
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/armeabi/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/mips/libc++_shared.so'
+        pickFirst 'lib/mips64/libc++_shared.so'
+    }
+    defaultConfig {
+        minSdk 26
+        targetSdk 33
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    ndkVersion '23.1.7779620'
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    //
+    api "org.videolan.android:libvlc-all:3.6.0-eap10"
+    api "org.videolan.android:medialibrary-all:0.13.13-rc10"
+    implementation  project(":InternalLibs:core")
+}
+
+//apply from: '../upload.gradle'

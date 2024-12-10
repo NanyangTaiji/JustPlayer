@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+    <data>
+        <import type="android.view.View" />
+        <import type="org.videolan.libvlc.util.AndroidUtil" />
+        <variable name="dialog" type="org.videolan.libvlc.Dialog.LoginDialog"/>
+        <variable name="handler" type="com.nytaiji.caster.smb.VlcLoginDialog"/>
+    </data>
+    <ScrollView  android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minWidth="600dip"
+                android:layout_alignParentTop="true"
+                android:layout_margin="10dp"
+                android:text="@{dialog.text}"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/login_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/text"
+                android:layout_margin="10dp" >
+                <EditText
+                    android:id="@+id/login"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minWidth="200dp"
+                    android:hint="Name"
+                    android:text="@{dialog.getDefaultUsername()}"
+                    android:inputType="textNoSuggestions"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/login_container"
+                android:layout_margin="10dp" >
+                <EditText
+                    android:id="@+id/password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minWidth="200dp"
+                    android:hint="@string/password"
+                    android:inputType="textPassword"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <CheckBox
+                android:id="@+id/store"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/password_container"
+                android:text="Store Passwrod"
+                android:layout_alignParentLeft="true"
+                android:layout_margin="5dp"
+                android:checked="false"
+                />
+            <TextView
+                android:id="@+id/warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/store"
+                android:layout_margin="10dp"
+                android:text="Encryption_warning"
+              />
+            <Button
+                android:id="@+id/cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/warning"
+                android:layout_toLeftOf="@+id/action"
+                android:text="@android:string/cancel"
+                android:onClick="@{handler::onCancel}"
+                tools:targetApi="11"
+                style="?android:attr/borderlessButtonStyle" />
+            <Button
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/warning"
+                android:text="@android:string/ok"
+                android:onClick="@{handler::onLogin}"
+                tools:targetApi="11"
+                style="?android:attr/borderlessButtonStyle" />
+        </RelativeLayout>
+    </ScrollView>
+</layout>

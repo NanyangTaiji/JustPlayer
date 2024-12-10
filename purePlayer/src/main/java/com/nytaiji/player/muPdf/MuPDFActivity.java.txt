@@ -1,0 +1,198 @@
+package com.nytaiji.player.muPdf;
+
+import static com.nytaiji.nybase.model.Constants.VIDEO_INDEX;
+import static com.nytaiji.nybase.model.Constants.VIDEO_LIST;
+import static com.nytaiji.nybase.crypt.EncryptUtil.DecryptedBufferFromOnline;
+import static com.nytaiji.nybase.crypt.EncryptUtil.DecryptedBufferFromUri;
+import static com.nytaiji.player.muPdf.FileViewerUtils.getMimeType;
+import static com.nytaiji.player.muPdf.FileViewerUtils.getNameFromBuff;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.artifex.mupdf.fitz.SeekableInputStream;
+import com.artifex.mupdf.viewer.DocumentActivity;
+import com.artifex.mupdf.viewer.MuPDFCore;
+import com.artifex.mupdf.viewer.SearchTaskResult;
+import com.nytaiji.nybase.model.NyHybrid;
+import com.nytaiji.nybase.crypt.EncryptUtil;
+import com.nytaiji.nybase.utils.NyFileUtil;
+import com.nytaiji.nybase.utils.NyMimeTypes;
+
+import java.util.ArrayList;
+
+
+/**
+ * @Description: MuPDF已有功能
+ * http://www.java2s.com/Open-Source/Android_Free_Code/Development/cordova/de_sitewaerts_cleverdox_viewerSDVMuPDFReaderView_java.htm
+ * @time: 2019/3/11 15:56
+ */
+public class MuPDFActivity extends DocumentActivity {
+    private static final String TAG = "MuPDFActivity";
+
+
+    public static void muPdfDisplay(Context context, String path, String mimeType) {
+        Intent intent = new Intent(context, MuPDFActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+        intent.setAction(Intent.ACTION_VIEW);
+        if (!path.contains("http")) {
+            path = "file://" + path;
+            intent.setDataAndType(Uri.parse(path), mimeType);
+        } else intent.putExtra("KEY_PATH", path);
+        intent.putExtra("MIME_TYPE", mimeType);
+        context.startActivity(intent);
+
+        // loadMuPdfListTask(this, path);
+    }
+
+    private final int OUTLINE_REQUEST = 0;// 目录回调
+    //  private String filePath = Environment.getExternalStorageDirectory() + "/pdf_t1.pdf"; // 文件路径
+    private String filePath;
+
+    private Bundle savedInstanceState;
+    private ArrayList<String> allMuPDFs;
+    private static int index = 0;
+    private int listsize = 1;
+
+    private String mFileName;
+
+
+    //TODO no difference with the following
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        refreshIntent(intent);
+    }
+
+    private void refreshIntent(Intent intent) {
+        overridePendingTransition(0, 0);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(intent);
+    }
+    //
+
+    private boolean delayHandle = false;
+
+    Handler messageHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message message) {
+            Bundle bundle = message.getData();
+            byte[] buffer = bundle.getByteArray("SMB");
+            displayBuffer(buffer);
+        }
+    };
+
+    @Override
+    protected void initMuPDFCoreByIntent() {
+        Intent intent = getIntent();
+        byte[] buffer;
+
+        allMuPDFs = intent.getStringArrayListExtra(VIDEO_LIST);
+        if (allMuPDFs != null) {
+            // We receive the position of the video selected in the playlist or the list of videos
+            index = intent.getIntExtra(VIDEO_INDEX, 0);
+            filePath = allMuPDFs.get(index);
+        } else filePath = intent.getStringExtra("KEY_PATH");
+
+        mimetype=intent.getStringExtra("MIME_TYPE");
+        buffer = intent.getByteArrayExtra("KEY_BUFFER");
+        Log.e(TAG, "filePath =  " + filePath);
+
+        if (filePath != null && buffer != null) {
+            core = openBuffer(buffer, NyMimeTypes.getMimeTypeFromPath(filePath));
+            mFileName = getNameFromBuff(buffer);
+        } else if (filePath != null && NyFileUtil.isOnline(filePath)) {
+            delayHandle = true;
+            Log.e(TAG, "NyFileUtil.isOnline(filePath)  ");
+            new RetrieveOnline().execute(filePath);
+            //  buffer = BufferFromOnline(this, filePath);
+            // core = openBuffer(buffer, "application/pdf");
+            mFileName = getNameFromBuff(buffer);
+        } else if (filePath != null && !filePath.contains("_NY")) {
+            core = openFile(filePath);
+            mFileName = NyFileUtil.getLastSegmentFromString(filePath);
+        } else if (filePath != null && filePath.contains("_NY")) {
+            buffer = EncryptUtil.EncryptFileToBuffer(this, filePath);
+            core = openBuffer(buffer, NyMimeTypes.getMimeTypeFromPath(filePath));
+            mFileName = getNameFromBuff(buffer);
+        } else if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            Uri uri = intent.getData();
+            // System.out.println("URI to open is: " + uri);
+            if (uri.getScheme().equals("file")) {
+                filePath = uri.getPath();
+                if (filePath.contains("_NY")) {
+                    buffer = EncryptUtil.EncryptFileToBuffer(this, filePath);
+                    core = openBuffer(buffer, NyMimeTypes.getMimeTypeFromPath(filePath));
+                    mFileName = getNameFromBuff(buffer);
+                } else {
+                    mFileName = NyFileUtil.getLastSegmentFromString(filePath);
+                    core = openFile(filePath);
+                }
+            } else {
+                // Log.e(TAG, "intent.getType() "+intent.getType());
+                buffer = DecryptedBufferFromUri(this, uri);
+                core = openBuffer(buffer, intent.getType());
+                mFileName = getNameFromBuff(buffer);
+            }
+            SearchTaskResult.set(null);
+        }
+    }
+
+    private class RetrieveOnline extends AsyncTask<String, Void, byte[]> {
+        protected byte[] doInBackground(String... urls) {
+            return DecryptedBufferFromOnline(MuPDFActivity.this, urls[0]);
+        }
+
+        protected void onPostExecute(byte[] buffer) {
+         //   if (buffer != null) Log.e(TAG, "onPostExecute  ");
+            displayBuffer(buffer);
+        }
+    }
+
+    private void displayBuffer(byte[] buffer) {
+        if (buffer != null) {
+            if (mimetype == null) mimetype= NyMimeTypes.getMimeTypeFromPath(filePath);
+           // Log.e(TAG, "mimeType ==" + mimeType);
+            core = openBuffer(buffer, mimetype);
+            if (core == null) Log.e(TAG, "Online buffer fail!");
+            else {
+                mFileName = NyFileUtil.getLastSegmentFromString(filePath);
+                proceedDisplay(savedInstanceState);
+            }
+        } else {
+            finish();
+            Toast.makeText(MuPDFActivity.this, "Online buffer fail!", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    private MuPDFCore openFile(String path) {
+        MuPDFCore muPDFCore;
+      //  Log.e(TAG, "Trying to open " + path);
+        NyHybrid nyHybrid = new NyHybrid(path);
+        try {
+            muPDFCore = openStream((SeekableInputStream) nyHybrid.getDecryptedInputStream(this), getMimeType(path));
+            // 新建：删除旧的目录数据
+            //  OutlineActivityData.set(null);
+        } catch (Exception e) {
+            Log.e(TAG, "openFile catch:" + e.toString());
+            return null;
+        } catch (OutOfMemoryError e) {
+            //  out of memory is not an Exception, so we catch it separately.
+            Log.e(TAG, "openFile catch: OutOfMemoryError " + e.toString());
+            return null;
+        }
+        return muPDFCore;
+    }
+}

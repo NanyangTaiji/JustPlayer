@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:orientation="vertical">
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/cancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Cancel"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="16dp" />
+
+        <TextView
+            android:id="@+id/video_shoot_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="16dp"
+            tools:text="拖动选择你要发表的10秒以内片段" />
+
+        <TextView
+            android:id="@+id/finishBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Exercute"
+            android:textColor="@android:color/holo_green_dark"
+            android:textSize="16dp" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/layout_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+
+        <com.nytaiji.core.nyExoPlayer.exoview.FsFilterView
+            android:id="@+id/video_loader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.nytaiji.core.nyExoPlayer.trimView.SimpleCropView
+            android:id="@+id/cropOverlayView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:background="@color/transparent"
+            app:cornerColor="@color/colorWhite"
+            app:cropOverlayCornerSize="20dp"
+            app:edgeColor="@color/colorPrimary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:minimumSide="60dp"
+            app:moveCornerDrawable="@drawable/ic_fiber_circle_white_24dp"
+            app:outsideCropColor="@color/black_transparent"
+            app:resizeCornerDrawable="@drawable/ic_fiber_circle_white_24dp" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="6">
+
+        <CheckBox
+            android:id="@+id/cb_trim"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="Trim" />
+
+        <CheckBox
+            android:id="@+id/cb_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="Crop" />
+
+
+        <CheckBox
+            android:id="@+id/cb_rotate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Rotate"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            />
+
+        <CheckBox
+            android:id="@+id/cb_rf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="Mirror" />
+
+        <CheckBox
+            android:id="@+id/cb_quite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="Quite" />
+
+        <CheckBox
+            android:id="@+id/cb_compress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="Compress" />
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:id="@+id/video_frames_layout"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:visibility="gone"
+        >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/video_frames_recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom"
+            tools:background="@android:color/holo_green_light" />
+
+        <ImageView
+            android:id="@+id/positionIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="35dp"
+            android:contentDescription="@null"
+            android:src="@drawable/shape_seekbar_thumb" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="35dp"
+                android:layout_height="50dp"
+                android:layout_gravity="bottom"
+                android:background="@color/black_overlay" />
+
+            <LinearLayout
+                android:id="@+id/seekBarLayout"
+                android:layout_width="0dp"
+                android:layout_height="65dp"
+                android:layout_gravity="bottom"
+                android:layout_weight="1"
+                android:gravity="bottom"
+                android:orientation="vertical" />
+
+            <View
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:background="@color/black_overlay" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <RadioGroup
+        android:id="@+id/crop_range"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10pt"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:weightSum="6">
+
+        <RadioButton
+            android:id="@+id/crop_0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:enabled="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="No" />
+
+        <RadioButton
+            android:id="@+id/crop_1_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:enabled="true"
+            android:checked="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="1/1" />
+
+
+        <RadioButton
+            android:id="@+id/crop_4_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="4/3" />
+
+        <RadioButton
+            android:id="@+id/crop_3_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="3/4" />
+
+        <RadioButton
+            android:id="@+id/crop_16_9"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="16/9" />
+
+        <RadioButton
+            android:id="@+id/crop_9_16"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="false"
+            android:enabled="true"
+            android:button="@null"
+            android:drawableTop="?android:attr/listChoiceIndicatorMultiple"
+            android:gravity="center_horizontal"
+            android:text="9/16" />
+    </RadioGroup>
+
+</LinearLayout>

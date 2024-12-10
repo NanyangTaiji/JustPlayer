@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent_translucent">#8000B0FF</color>
+    <color name="textColorPrimary">#000000</color>
+    <color name="dark_blue">#2980b9</color>
+    <color name="darker_blue">#20638f</color>
+    <color name="light_blue">#e8eaf6</color>
+    <color name="lighter_orange">#ffad33</color>
+
+    <color name="colorWhite">#fff</color>
+    <color name="colorBelizeHole">#2980b9</color>
+    <color name="colorMidnightBlue">#2c3e50</color>
+    <color name="colorOrange">#f39c12</color>
+    <color name="colorPomegranate">#c0392b</color>
+
+    <color name="green_transparent">#3300FFFF</color>
+    <color name="orange_transparent">#80c0392b</color>
+    <color name="darkgreen_transparent">#8000688B</color>
+    <color name="dark_transparent">#CC00688B</color>
+    <color name="transparent">#00000000</color>
+    <color name="black_transparent">#00000000</color>
+    <color name="black_overlay">#CC000000</color>
+    <color name="white_transparent_50">#80ffffff</color>
+</resources>

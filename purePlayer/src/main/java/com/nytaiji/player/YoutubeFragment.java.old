@@ -1,0 +1,341 @@
+package com.nytaiji.player;
+
+import static com.nytaiji.player.ListHelper.getUrlAndNonTorrentStreams;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.nytaiji.nybase.NyBaseFragment;
+import com.nytaiji.nybase.utils.SystemUtils;
+import com.nytaiji.nybase.view.OldNyWebView;
+
+import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.VideoStream;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+public class YoutubeFragment extends NyBaseFragment {
+    private OldNyWebView youtubeView;
+    private String mediaLink = null;
+
+    private boolean inList = false;
+
+    @Nullable
+    @Override
+    public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container,
+                             final Bundle savedInstanceState) {
+        // setTitle("NewPipe");
+
+        View root = inflater.inflate(R.layout.fragment_youtube, container, false);
+        youtubeView = root.findViewById(R.id.web_view);
+
+        youtubeView.getSettings().setJavaScriptEnabled(true);
+        youtubeView.canGoBack();
+        youtubeView.setFocusableInTouchMode(true);
+        youtubeView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+
+                String url = String.valueOf(request.getUrl());
+
+
+                if (url.contains("list=")) {
+                    inList = true;
+                    String listID = url.substring(url.indexOf("list=") + 5).split("&")[0];
+                    Log.d(TAG, "list= = " + listID);
+                }
+
+                //block ing
+                if (isAdsVideo(url))
+                    return new WebResourceResponse("text/plain", "utf-8", null);
+
+                mediaLink = null;
+                if (!url.contains("stats") && url.contains("video_id=") && !url.contains("pltype=adhost")) {
+                    Log.e(TAG, "video link = " + url);
+                    final String[] VID = {url.substring(url.indexOf("video_id=") + 9).split("&")[0]};
+                    if (VID[0] != null) {
+                        mediaLink = "https://youtu.be/" + VID[0];
+                        Log.e(TAG, "mediaLink = " + mediaLink);
+                        getInfoHere(mediaLink);
+                        //alternative way
+                        // getVideoLink(mediaLink,REQUEST_DEFAULT);
+
+                    }
+                }
+
+                if (mediaLink == null) return super.shouldInterceptRequest(view, request);
+                else {
+
+                    return new WebResourceResponse("text/plain", "utf-8", null);
+                }
+            }
+
+        });
+
+
+        youtubeView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN && youtubeView.canGoBack()) {
+                    // Navigate back by the top of playlist
+                    //
+                    int steps = youtubeView.copyBackForwardList().getSize();
+                    if (inList && steps > 2) {
+                        youtubeView.goBackOrForward(-steps + 2);
+                        inList = !inList; //TO the top of the list, will be become true once we play another video in the list
+                    } else youtubeView.goBackOrForward(-steps + 1);
+                    return true;  // Consumes the back button press
+                }
+                return false;
+            }
+        });
+
+        FloatingActionButton fab = root.findViewById(R.id.floatingActionButton);
+        // fab.setVisibility(View.GONE);
+        fab.setOnClickListener(v -> {
+            showVideoQualityDialog();
+        });
+
+        youtubeView.loadUrl("https://m.youtube.com/");
+
+        return root;
+    }
+
+    private boolean isAdsVideo(String url) {
+        return url.contains("pagead")
+                || url.contains("adview")
+                || url.contains("ad_status")
+                || url.contains("ad.js");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SystemUtils.hideSystemUI(getActivity());
+    }
+
+
+    private static final int REQUEST_CODE = 123;
+    private String extractLink = null;
+
+    private StreamInfo getStreamInfo(String url) throws ExtractionException, IOException {
+        return StreamInfo.getInfo(NewPipe.getService(0), url);
+    }
+
+    private void getInfoHere(String mediaLink) {
+        currentInfo = null;
+        ((NyPlayActivity) getActivity()).SetStreamTitle(null);
+        ((NyPlayActivity) getActivity()).invalidateOptionsMenu();
+
+        //---------------------------------------------------//
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            try {
+                StreamInfo info = getStreamInfo(mediaLink);
+                processInfo(info);
+            } catch (ExtractionException | IOException e) {
+                // Handle specific exceptions
+                Log.e(TAG, "Error fetching stream info", e);
+            } catch (Exception e) {
+                // Handle other exceptions
+                Log.e(TAG, "Unexpected error", e);
+            }
+        });
+
+        // Wait for the CompletableFuture to complete (blocking operation)
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            // Handle exceptions during CompletableFuture.get()
+            Log.e(TAG, "Error waiting for completion", e);
+        }
+    }
+
+
+    StreamInfo currentInfo = null;
+
+    private void processInfo(StreamInfo info) {
+        //automatically get default information
+        currentInfo = info;
+        ((NyPlayActivity) getActivity()).SetStreamTitle(currentInfo.getName());
+        ((NyPlayActivity) getActivity()).invalidateOptionsMenu();
+        extractLink = YoutubeFragment.this.getDefaultStream(currentInfo);
+        ((NyPlayActivity) getActivity()).SetStreamLink(extractLink);
+    }
+
+    private void showVideoQualityDialog() {
+        if (currentInfo == null) {
+            Toast.makeText(getActivity(), "No extracted stream available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        builder.setTitle(currentInfo.getName());
+      /*  builder.setNeutralButton(R.string.default_resolution, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int i) {
+                extractLink = YoutubeFragment.this.getDefaultStream(currentInfo);
+                ((NyPlayActivity) getActivity()).buildMediaInfo(extractLink, "video/mp4");
+            }
+        });*/
+
+        final List<VideoStream> videoStreamsForExternalPlayers =
+                ListHelper.getSortedStreamVideosList(
+                        mActivity,
+                        getUrlAndNonTorrentStreams(currentInfo.getVideoStreams()),
+                        getUrlAndNonTorrentStreams(currentInfo.getVideoOnlyStreams()),
+                        false,
+                        false
+                );
+
+        if (videoStreamsForExternalPlayers.isEmpty()) {
+            builder.setMessage(R.string.no_video_streams);
+            builder.setPositiveButton(com.nytaiji.nybase.R.string.confirm, null);
+
+        } else {
+            final int selectedVideoStreamIndexForExternalPlayers =
+                    ListHelper.getDefaultResolutionIndex(mActivity, videoStreamsForExternalPlayers);
+            final CharSequence[] resolutions = videoStreamsForExternalPlayers.stream()
+                    .map(VideoStream::getResolution).toArray(CharSequence[]::new);
+
+            builder.setSingleChoiceItems(resolutions, selectedVideoStreamIndexForExternalPlayers,
+                    null);
+            builder.setNegativeButton(com.nytaiji.nybase.R.string.cancel, null);
+            builder.setPositiveButton(com.nytaiji.nybase.R.string.confirm, (dialog, i) -> {
+                final int index = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                // We don't have to manage the index validity because if there is no stream
+                // available for external players, this code will be not executed and if there is
+                // no stream which matches the default resolution, 0 is returned by
+                // ListHelper.getDefaultResolutionIndex.
+                // The index cannot be outside the bounds of the list as its always between 0 and
+                // the list size - 1, .
+                handleSelectedStream(videoStreamsForExternalPlayers.get(index));
+            });
+        }
+        builder.show();
+    }
+
+    private void handleSelectedStream(VideoStream stream) {
+        extractLink = stream.getUrl();
+        ((NyPlayActivity) getActivity()).SetStreamLink(extractLink);
+    }
+
+    private String getDefaultStream(StreamInfo info) {
+        String url = null;
+        final List<VideoStream> videoStreams = info.getVideoStreams();
+        final List<VideoStream> videoStreamsForExternalPlayers =
+                ListHelper.getSortedStreamVideosList(getActivity(),
+                        getUrlAndNonTorrentStreams(videoStreams), null, false, false);
+        if (videoStreamsForExternalPlayers.isEmpty()) {
+            url = "";
+        } else {
+            final int index = ListHelper.getDefaultResolutionIndex(getActivity(), videoStreamsForExternalPlayers);
+            url = videoStreamsForExternalPlayers.get(index).getUrl();
+        }
+        return url;
+    }
+
+    //--------------------------------------------------------------------------//
+
+    /* alternative 2:
+    static Single<StreamInfo> getStreamInfo(final String url,
+                                                   final boolean forceLoad) {
+        return Single.fromCallable(() -> StreamInfo.getInfo(NewPipe.getService(0), url));
+    }
+
+    private void getInfoHere(String mediaLink) {
+        extractLink = null;
+        final CompositeDisposable disposables = new CompositeDisposable();
+        disposables.add(getStreamInfo( mediaLink, true)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(info -> {
+                   processInfo(info);
+                }, throwable -> {
+                    Log.e(TAG, "getInfoHere: " + throwable.getMessage());
+                }));
+    }*/
+
+//Alternative way 3
+    /*
+    private boolean isAppInstalled(String packageName) {
+        PackageManager packageManager = getActivity().getPackageManager();
+        try {
+            // Attempt to get the application info
+            packageManager.getApplicationInfo(packageName, 0);
+            return true; // App is installed
+        } catch (PackageManager.NameNotFoundException e) {
+            return false; // App is not installed
+        }
+    }
+
+    private String targetPackageName = "org.schabi.newpipe";
+    private String targetClassName = "org.schabi.newpipe.RouterActivity";
+
+    private void getVideoLink(String mediaLink, int requesType) {
+        if (isAppInstalled(targetPackageName)) {
+            // Create an explicit Intent
+            Intent intent = new Intent();
+            intent.setClassName(targetPackageName, targetClassName);
+            intent.setData(Uri.parse(mediaLink));
+            intent.putExtra(REQUEST_ACTION, requesType);
+            startActivityForResult(intent, REQUEST_CODE);
+        } else {
+            // The target app is not installed, handle accordingly
+            Toast.makeText(getActivity(), "Target app is not installed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String videoName = null;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // Retrieve the object from the Intent
+            extractLink = data.getStringExtra(VIDEO_LINK);
+            videoName = data.getStringExtra(VIDEO_NAME);
+
+            fab.setVisibility(View.VISIBLE);
+            if (extractLink != null && extractLink.length() > 10)
+                ((NyPlayActivity) getActivity()).buildMediaInfo(extractLink, "video/mp4");
+            else
+                Toast.makeText(getActivity(), "Extraction unavailable!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static String REQUEST_ACTION = "request_action";  //default for no return
+
+    public static int REQUEST_NO_RETURN = -1;
+    public static int REQUEST_INFO = 0;  //request for StreamInfo
+    public static String STREAM_INFO = "stream_info";  //go with calling fragment's request of REQUEST_INFO
+    //calling fragment StreamInfo info = (StreamInfo) data.getSerializableExtra(VIDEO_INFO);
+    //useful in the same application
+    public static int REQUEST_OPTION = 1; //optional video stream
+    public static int REQUEST_DEFAULT = 2; //default video stream
+
+    public static String VIDEO_LINK = "video_link";
+    public static String VIDEO_NAME = "video_name";
+    public static String VIDEO_DURATION = "video_durationn";
+    public static String VIDEO_SIZE = "video_size";
+    public static String VIDEO_TYPE = "video_type";
+  */
+}

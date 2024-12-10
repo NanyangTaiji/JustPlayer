@@ -1,0 +1,71 @@
+apply plugin: 'com.android.library'
+
+
+android {
+    compileSdk 34
+    namespace 'com.nytaiji.exoplayer'
+    android.buildFeatures.buildConfig true
+    defaultConfig {
+        minSdk 26
+        targetSdk 31
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    buildToolsVersion = '33.0.2'
+    ndkVersion '23.1.7779620'
+
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["lib-*.aar"])
+    implementation 'androidx.appcompat:appcompat:1.4.1' //do not change
+    def media3_version = '1.2.0'
+    implementation "androidx.media3:media3-session:$media3_version"
+    implementation "androidx.media3:media3-datasource:$media3_version"
+    implementation "androidx.media3:media3-decoder:$media3_version"
+    implementation "androidx.media3:media3-common:$media3_version"
+    implementation "androidx.media3:media3-container:$media3_version"
+    implementation("androidx.media3:media3-exoplayer-dash:$media3_version") {
+        exclude group: "androidx.media3", module: "media3-exoplayer"
+    }
+    implementation("androidx.media3:media3-exoplayer-hls:$media3_version") {
+        exclude group: "androidx.media3", module: "media3-exoplayer"
+    }
+    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version") {
+        exclude group: "androidx.media3", module: "media3-exoplayer"
+    }
+    implementation("androidx.media3:media3-exoplayer-rtsp:$media3_version") {
+        exclude group: "androidx.media3", module: "media3-exoplayer"
+    }
+    api 'com.squareup.okhttp3:okhttp:4.11.0'
+  /*  api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-rtsp:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:extension-rtmp:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:extension-okhttp:$rootProject.ext.exoplayer2Version"*/
+
+    api "net.lingala.zip4j:zip4j:2.6.4"
+   // implementation project(':exoplayer2_ffmpeg')
+    //  api project(':library:exoplayer2-ext-av1')
+    //  api project(':library:exoplayer2-ext-vp9')
+
+    implementation project(":InternalLibs:core")
+
+    //for trim
+    implementation 'com.github.iknow4:android-utils-sdk:1.1.2'
+}
+

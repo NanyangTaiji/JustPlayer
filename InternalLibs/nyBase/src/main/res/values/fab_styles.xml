@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="MiniFabLayout">
+        <item name="android:layout_gravity">end</item>
+        <item name="android:layout_marginTop">@dimen/fab_menu_item_margin_top</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="MiniFab">
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_marginBottom">@dimen/mini_fab_margin_bottom</item>
+        <item name="android:layout_marginLeft">@dimen/mini_fab_margin_left</item>
+        <item name="android:layout_marginStart" tools:targetApi="jelly_bean_mr1">@dimen/mini_fab_margin_left</item>
+        <item name="android:layout_marginRight">@dimen/mini_fab_margin_right</item>
+        <item name="android:layout_marginEnd" tools:targetApi="jelly_bean_mr1">@dimen/mini_fab_margin_right</item>
+        <item name="android:layout_marginTop">@dimen/mini_fab_margin_top</item>
+        <item name="fabSize">mini</item>
+        <item name="paddingEnd">0dp</item>
+        <item name="paddingStart">0dp</item>
+    </style>
+
+    <style name="TitleCardView">
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="TitleView">
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:typeface">sans</item>
+    </style>
+
+</resources>

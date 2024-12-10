@@ -1,0 +1,79 @@
+package com.nytaiji.epf;
+
+import com.nytaiji.epf.filter.GlFilter;
+
+public class GlFilterInfo {
+    private GlFilter filter;
+    private float minV;
+    private float maxV;
+    private float progress;
+    private String name;
+    private float defaultV;
+
+    public GlFilterInfo(String name, GlFilter filter, float progress) {
+        this.name = name;
+        this.filter = filter;
+        this.progress = progress;
+    }
+
+    public GlFilterInfo(String name, GlFilter filter, float progress, float minV, float maxV, float defaultValue) {
+        this.name = name;
+        this.filter = filter;
+        this.progress = progress;
+        this.defaultV = defaultV;
+        this.minV = minV;
+        this.maxV = maxV;
+    }
+
+    public float range() {
+        return (maxV - minV) * progress + minV;
+    }
+
+    public GlFilter getFilter() {
+        return this.filter;
+    }
+
+    public void setFilter(GlFilter filter) {
+        this.filter = filter;
+    }
+
+    public float getMinV() {
+        return minV;
+    }
+
+    public void setMinV(float minV) {
+        this.minV = minV;
+    }
+
+    public float getMaxV() {
+        return maxV;
+    }
+
+    public void setMaxV(float maxV) {
+        this.maxV = maxV;
+    }
+
+    public float getProgress() {
+        return progress;
+    }
+
+    public void setProgress(float progress) {
+        this.progress = progress;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public float getDefaultV() {
+        return defaultV;
+    }
+
+    public void setDefaultV(float defaultV) {
+        this.defaultV = defaultV;
+    }
+}

@@ -1,0 +1,103 @@
+apply plugin: 'com.android.application'
+
+
+android {
+    compileSdk 35
+    namespace 'com.nytaiji.player'
+    defaultConfig {
+        applicationId "com.nytaiji.player"
+        minSdk 26
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            aidl.srcDirs = ['src/main/aidl', 'src\\main\\aidl', 'src\\main\\aidl\\2']
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a'
+            universalApk false
+        }
+    }
+
+    ndkVersion '23.1.7779620'
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        // coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        encoding 'utf-8'
+    }
+
+}
+
+configurations.all {
+    exclude group: 'com.github.spotbugs', module: 'spotbugs-annotations'
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    //TODO ny
+    //  implementation project(path: ':nyBase')  //is included in core
+    implementation project(':InternalLibs:core')
+    implementation project(':InternalLibs:nyExoPlayer')
+    api project(':InternalLibs:nyVlcPlayer') //need vlc smb
+    implementation project(':InternalLibs:nyFanplayer')
+ //   implementation project(':ExternalLibs:muPDF')
+
+    // Cast dependencies
+    implementation 'androidx.mediarouter:mediarouter:1.7.0'
+    implementation 'com.google.android.gms:play-services-cast-framework:21.3.0'
+
+    implementation "androidx.lifecycle:lifecycle-process:2.8.7"
+    implementation 'androidx.core:core:1.15.0' // Use the latest version
+
+    //json conversion
+    implementation 'com.google.code.gson:gson:2.11.0'  // Use the latest version
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+
+    //Equalizer
+   // implementation 'com.sdsmdg.harjot:croller:1.0.7'
+
+    //vlc
+    implementation "androidx.lifecycle:lifecycle-service:2.8.7"
+    implementation 'com.google.android.material:material:1.12.0'
+
+    //the following two are important to resolve duplicats in libs for kotlin
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
+    //exoplayer
+    implementation "com.google.android.exoplayer:extension-cast:$rootProject.ext.exoplayer2Version"
+
+    //newpipe
+   // implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
+    // WORKAROUND: v0.24.2 can't be resolved by jitpack -> use git commit hash instead
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.24.3'
+    // HTTP client
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+
+}

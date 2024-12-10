@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:orientation="vertical">
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/cancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Cancel"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="16dp" />
+
+        <TextView
+            android:id="@+id/video_shoot_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="16dp"
+            tools:text="拖动选择你要发表的10秒以内片段" />
+
+        <TextView
+            android:id="@+id/finishBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Exercute"
+            android:textColor="@android:color/holo_green_dark"
+            android:textSize="16dp" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/layout_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.nytaiji.core.nyExoPlayer.exoview.FsFilterView
+            android:id="@+id/video_loader"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true" />
+    </FrameLayout>
+
+
+
+    <FrameLayout
+        android:id="@+id/video_frames_layout"
+        android:layout_width="match_parent"
+        android:layout_height="65dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/video_frames_recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom"
+            tools:background="@android:color/holo_green_light" />
+
+        <ImageView
+            android:id="@+id/positionIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="35dp"
+            android:contentDescription="@null"
+            android:src="@drawable/shape_seekbar_thumb" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="35dp"
+                android:layout_height="50dp"
+                android:layout_gravity="bottom"
+                android:background="@color/black_overlay" />
+
+            <LinearLayout
+                android:id="@+id/seekBarLayout"
+                android:layout_width="0dp"
+                android:layout_height="65dp"
+                android:layout_gravity="bottom"
+                android:layout_weight="1"
+                android:gravity="bottom"
+                android:orientation="vertical" />
+
+            <View
+                android:layout_width="35dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:background="@color/black_overlay" />
+        </LinearLayout>
+    </FrameLayout>
+
+
+
+</LinearLayout>

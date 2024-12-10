@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/open"
+        android:icon="@drawable/ic_folder_open_24dp"
+        android:title="Pick source"
+        app:showAsAction="always" />
+
+
+    <item
+        android:id="@+id/menu_download"
+        android:icon="@drawable/ic_file_download_white_24dp"
+        android:title="@string/Download"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_stop_route"
+        android:icon="@drawable/ic_close"
+        android:title="Disconnect"
+        app:showAsAction="always"  />
+
+    <item
+        android:id="@+id/menu_play_route"
+        android:icon="@drawable/ic_play_arrow_24dp"
+        android:title="Play link"
+        app:showAsAction="always"  />
+
+    <item
+        android:id="@+id/menu_connect_route"
+        android:title="Chromecast"
+        app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/menu_player"
+        android:icon="@drawable/ic_settings_white_24dp"
+        android:title="Player toggler"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+</menu>

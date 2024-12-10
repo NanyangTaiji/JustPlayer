@@ -1,0 +1,215 @@
+<resources>
+    <string name="string_video_failed">主视频解析失败，是否重试?</string>
+
+    <string name="string_reload">重新加载</string>
+    <string name="string_default_time">00:00</string>
+
+    <string name="string_video_load_error">视频加载失败</string>
+
+    <string name="mobile_data_tips">您当前正在使用移动网络，继续播放将消耗流量</string>
+    <string name="continue_playing">继续播放</string>
+    <string name="stop_play">停止播放</string>
+
+    <string name="appName">中正视频</string>
+    <string name="nav_main">Main</string>
+    <string name="nav_tool">NYTaiji</string>
+    <string name="engine">Engine</string>
+    <string name="playBehaviour">Play Behaviour</string>
+    <string name="scale">Scale</string>
+    <string name="recall">"Video recalled: "</string>
+    <string name="now">"NOW"</string>
+    <string name="later">"ON EXIT"</string>
+    <string name="contact">"南洋中正太极 Wechat：NanyangTaiji EMail：nanyangtaiji@qq.com"</string>
+    <string name="playerSetting">"PLAYER SETTINGS"</string>
+    <string name="renders">Render</string>
+    <string name="videoEnd">Play Mode</string>
+    <string name="cycle">Cycle</string>
+    <string name="repeat">Stop</string>
+    <string name="endOut">Exit</string>
+    <string name="isTheLatestVersion">Is the latest version</string>
+    <string name="connectionTimeout">Connection timeout</string>
+    <string name="readTimeout">Read timeout</string>
+    <string name="updateLog">%1$sv%2$s update log: </string>
+    <string name="updateLogs">Update Logs</string>
+    <string name="userFeedback">User Feedback</string>
+    <string name="version">v1.9-beta03</string>
+    <string name="pleaseInsertSdCardOnYourDeviceFirst">Please insert SD card on your device first.</string>
+    <string name="downloadingUpdates">Downloading Updates…</string>
+    <string name="notHaveEnoughStorage">Device does not have enough storage.</string>
+    <string name="downloadError">Download error</string>
+    <string name="downloadNotificationChannelName">Download</string>
+    <string name="percentProgress">%.2f%%</string>
+    <string name="charsequenceProgress">%1$s/%2$s</string>
+    <string name="checkForUpdates">Check for Updates</string>
+    <string name="theInstallationPackageHasBeenDestroyed">The installation package has been destroyed.</string>
+    <string name="newAppDownloaded">New App Downloaded</string>
+    <string name="clickToInstallIt">Click to install it</string>
+    <string name="msgNotificationChannelName">Message</string>
+    <string name="downloadNotificationChannelId" translatable="false">%s__download_notification_channel</string>
+    <string name="msgNotificationChannelId" translatable="false">%s__msg_notification_channel</string>
+    <string name="findNewVersion">Find new version</string>
+    <string name="findNewVersion_title">Find New Version</string>
+    <string name="doYouNeedToUpdateItSoon">Do you need to update it soon?</string>
+    <string name="updateApk">Updated Apk</string>
+    <string name="pipExit">PiP in Exit</string>
+    <string name="onlineCache">Online Cache</string>
+
+    <string name="rationale_askExternalStorage">
+        This app needs access to your memory card to scan and load videos.</string>
+    <string name="rationale_askExternalStorageAgain">
+        This app will not work without permissions to read from and write to the memory card.
+        Please go to the application settings screen to allow those permissions.
+    </string>
+    <string name="permissionsRequired">Permissions Required</string>
+    <string name="permissionsDenied">Permissions Denided</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="pressAgainToExitApp">Press back again to exit app</string>
+    <string name="registrationNeed">Please register with NYTaiji first!</string>
+    <string name="inputFeedback">Input registration code</string>
+    <string name="guest">"Guest"</string>
+    <string name="cancel">"CANCEL"</string>
+    <string name="redownloading">"Re-Download</string>
+    <string name="confirm">"CONFIRM"</string>
+    <string name="confirmRedownloading">"Do you want to red-ownload it?"</string>
+    <string name="addToList">"Add to List"</string>
+    <string name="appendToSelection">"Append To Selected"</string>
+    <string name="confirmdelete">"Confirm Delete..."</string>
+
+    <string name="areYouSureToDelete">"Are you sure you want to Delete:\n\n"</string>
+    <string name="inputList">"Please input valid list name!"</string>
+    <string name="selectOptions">"Selected Items Options"</string>
+    <string name="individualOptions">"Single Video Options"</string>
+    <string name="selectOnlyOne">"Please select at least one item!"</string>
+    <string name="downloadUnlock">"Please download to local and unlock from there!"</string>
+    <string name="groupOptions">"Group's Options"</string>
+    <string name="folderOptions">"Folder's Options"</string>
+    <string name="folderHide">"Folder Hide"</string>
+    <string name="folderUnHide">"Folder Unhide"</string>
+    <string name="tempUnHide">"Temporary Unhide"</string>
+
+    <string name="sameTitle">"Same title exists!"</string>
+    <string name="shareGroup">"Group Share"</string>
+    <string name="sharePath">"Video Share"</string>
+    <string name="addGroup">"Add Group to Playlist"</string>
+    <string name="playGroup">"Group Play"</string>
+    <string name="renameGroup">"Group Rename"</string>
+    <string name="deleteGroup">"Group Delete"</string>
+
+    <string name="unlocking">"Unlock"</string>
+    <string name="videoUnlock">"Video Unlock"</string>
+    <string name="videoRename">"Video Rename"</string>
+    <string name="externalPlay">"External Play"</string>
+    <string name="deletingItem">"Delete Items"</string>
+    <string name="videoDelete">"Videos Delete"</string>
+    <string name="videoConcat">"Videos Concat"</string>
+    <string name="videoEdit">"Video Edit"</string>
+    <string name="videoEncrypt">"Video Encrypt"</string>
+    <string name="headEncrypt">"Head Encrypt"</string>
+
+    <string name="requestUnlock">"Request unlock code"</string>
+    <string name="highPrevilege">"Higher privilege required to view this video"</string>
+    <string name="inputUnlock">"Input unlock code"</string>
+    <string name="peeping">"Continue peeping"</string>
+    <string name="upgrading">"Upgrade"</string>
+    <string name="invalidCode">"Invalid code"</string>
+    <string name="authenticateUnhide">"Authenticate Unhide"</string>
+    <string name="unknownUser">"Unknown User"</string>
+    <string name="group_">"Group: "</string>
+    <string name="tempUnhide_">" temporary unhide"</string>
+    <string name="checkVideos">"Checked Video Options"</string>
+    <string name="shareOne">"Share only one each time!"</string>
+    <string name="onlineManager">"Online Lists Manager"</string>
+    <string name="validOnline">"Please input valid online link!"</string>
+
+    <string name="restoreCode">"Wrong Code, restore to previous code!"</string>
+    <string name="defaultSetting">"Default"</string>
+    <string name="setting">Settings</string>
+    <string name="about">About</string>
+    <string name="search">Search</string>
+    <string name="action">Action</string>
+    <string name="local">Local</string>
+    <string name="online">Online</string>
+    <string name="list">Category</string>
+    <string name="develop">Developer Mode</string>
+
+    <string name="failInit">Folder initiation fail!</string>
+
+    <string name="registrationOk">"Register successfully"</string>
+    <string name="registration">"Registration"</string>
+    <string name="getMachine">"Get machine code"</string>
+
+    <string name="invalidLink">"The Link is expired/invalid (链接无效或过期)!"</string>
+    <string name="playingDownload">"Playing downloaded video!"</string>
+    <string name="forcedDownload">"Enforced downloading......"</string>
+    <string name="encryptedDownload">"Encrypted downloading in background......"</string>
+    <string name="backgroundDownload">"Downloading in background......"</string>
+    <string name="downloadTo">" downloaded to: "</string>
+    <string name="Download">"Download"</string>
+    <string name="EnDownload">"En_Down"</string>
+    <string name="Play">"Play"</string>
+    <string name="failPlay">"Fail in playing!"</string>
+    <string name="tempExoplayer">"Temporary select Exoplayer to play encrypted videos!"</string>
+    <string name="history">"2-History"</string>
+    <string name="input">1-Input</string>
+    <string name="newdownload">0-New Download</string>
+    <string name="wrongPassword">"Wrong Password!"</string>
+    <string name="serverFailure">"Server Failure!"</string>
+    <string name="password">"Password:"</string>
+    <string name="input16Bytes">"Please input a 16 bytes password!"</string>
+    <string name="onlineLink">"Online Link"</string>
+    <string name="purchase">"Purchase"</string>
+    <string name="donate">"Donation"</string>
+    <string name="budget">"Budget"</string>
+    <string name="amount">"Amount"</string>
+    <string name="balance">"Balance"</string>
+    <string name="insufficient">"Insufficient budget!"</string>
+    <string name="debt">"Debt"</string>
+    <string name="refund">"Refund"</string>
+    <string name="requestDonate">"Request Donation"</string>
+    <string name="inputDonate">"Input Donation"</string>
+    <string name="donationneeded">"Higher privilege/donation needed to view this video!"</string>
+    <string name="encryptCode">"Encryption Code(16 digits)"</string>
+    <string name="donateCode">"Donate Amount"</string>
+    <string name="paste">"Paste"</string>
+    <string name="donateWait">"You need to complete last transaction!"</string>
+    <string name="donateConfirm">"Inconsistent or reused code!"</string>
+    <string name="donateThanks">"Thanks for your kindly support for Nanyang Taiji!"</string>
+    <string name="confirmPay">"Are you sure this video deserves to pay for it?"</string>
+    <string name="currentVersion">"Current Version："</string>
+    <string name="deviceId">"Device ID: "</string>
+    <string name="userId">"User ID: "</string>
+    <string name="totalBalance">"Donation Balance: "</string>
+    <string name="connection">"Connecting......,"</string>
+    <string name="rotate">Rotate</string>
+    <string name="sound">sound</string>
+    <string name="ratio">ratio</string>
+    <string name="encryption">encryption</string>
+    <string name="speed">Speed</string>
+    <string name="registerRemind">Unreqistered copy, please register with NYTaiji!  Unreqistered copy, please register with NYTaiji!  Unreqistered copy, please register with NYTaiji!</string>
+    <string name="unlockRemind">Playing in the peeping mode, either upgrade your level or unlock the video by donation! Playing in the peeping mode, either upgrade your level or unlock the video by donation!</string>
+
+
+    <string name="no_video">没有视频资源!</string>
+    <string name="msg_end">已经到头了!</string>
+    <string name="msg_buffering">正在缓冲..%1$s</string>
+    <string name="play_error">播放出错!</string>
+    <string name="time">00:00:00</string>
+    <string name="prompt">提示</string>
+    <string name="tip_play_position">是否从记录点开始播放?</string>
+    <string name="comfirm">确定</string>
+    <string name="title_activity_main">播放器Demo</string>
+    <string name="action_settings">设置</string>
+    <string name="hello_world">Hello world!</string>
+
+    <string name="settings">设置</string>
+    <string name="recoder_setting">解码器：</string>
+    <string name="opencore">默认</string>
+    <string name="vlc">VLC</string>
+
+    <string name="percentage">%1$d%%</string>
+
+
+</resources>

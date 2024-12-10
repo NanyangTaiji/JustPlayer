@@ -732,6 +732,7 @@ public class PlayerActivity extends OldPermissionsActivity {
             playerView.removeCallbacks(barsHider);
             Utils.toggleSystemUi(this, playerView, true);
         }
+        //TODO ny
         initializePlayer();
         updateButtonRotation();
     }

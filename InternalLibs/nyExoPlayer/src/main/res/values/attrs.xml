@@ -1,0 +1,38 @@
+<resources>
+    <declare-styleable name="ZoomableTextureView">
+        <attr name="minScale" format="float" />
+        <attr name="maxScale" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="FloatingActionButtonWithText">
+        <attr name="imageSrc" format="reference" localization="suggested" />
+        <attr name="text" format="string" localization="suggested" />
+    </declare-styleable>
+
+    <declare-styleable name="animateTextView">
+        <attr name="shuffleTexts" format="boolean" />
+        <attr name="intervalText" format="integer" />
+        <attr name="textArray" format="string" />
+        <attr name="fadeInFadeOut" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="animateImageView">
+        <attr name="intervalImage" format="integer" />
+        <attr name="imageType" format="string" />
+        <attr name="shuffleImages" format="boolean" />
+        <attr name="imageFadeInFadeOut" format="boolean" />
+    </declare-styleable>
+
+
+    <declare-styleable name="IconCropView">
+        <attr name="minimumSide" format="dimension"/>
+        <attr name="resizeCornerDrawable" format="reference"/>
+        <attr name="moveCornerDrawable" format="reference"/>
+        <attr name="cornerColor" format="color"/>
+        <attr name="edgeColor" format="color" />
+        <attr name="outsideCropColor" format="color" />
+        <attr name="cropOverlayCornerSize" format="dimension" />
+    </declare-styleable>
+
+
+</resources>

@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">PurePlayer</string>
+    <string name="subtitle_path">Subtitle path</string>
+    <string name="start">Play</string>
+    <string name="stop">Stop</string>
+    <string name="media_route_menu_title">Play On</string>
+    <string name="scanning_in_progress">Scanning in Progress...</string>
+
+    <string name="default_resolution">Default</string>
+    <string name="best_resolution">Best resolution</string>
+    <string name="youtube_restricted_mode_enabled">youtube_restricted_mode_enabled</string>
+    <string name="recaptcha_cookies_key">recaptcha_cookies_key</string>
+    <string name="select_quality">Select Strean Quality</string>
+    <string name="no_video_streams">No playable vide streams</string>
+    <string name="systems_language">System default</string>
+    <string name="minimize_on_exit_none_description">None</string>
+
+</resources>

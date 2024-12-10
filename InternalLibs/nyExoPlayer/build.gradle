@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+
+
+android {
+    compileSdk 33
+    namespace 'com.nytaiji.exoplayer'
+    android.buildFeatures.buildConfig true
+    defaultConfig {
+        minSdk 26
+        targetSdk 33
+        versionCode 1
+        versionName '1.0.1'
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    buildToolsVersion = '33.0.2'
+    ndkVersion '23.1.7779620'
+
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["lib-*.aar"])
+    implementation 'androidx.appcompat:appcompat:1.4.1' //do not change
+
+    api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:exoplayer-rtsp:$rootProject.ext.exoplayer2Version"
+ //   api "com.google.android.exoplayer:extension-rtmp:$rootProject.ext.exoplayer2Version"
+    api "com.google.android.exoplayer:extension-okhttp:$rootProject.ext.exoplayer2Version"
+
+    api "net.lingala.zip4j:zip4j:2.6.4"
+   // implementation project(':ExternalLibs:exoplayer2_ffmpeg')
+    //  api project(':library:exoplayer2-ext-av1')
+    //  api project(':library:exoplayer2-ext-vp9')
+
+    implementation project(":InternalLibs:core")
+
+    //for trim
+  //  implementation 'com.github.iknow4:android-utils-sdk:1.1.2'
+}
+

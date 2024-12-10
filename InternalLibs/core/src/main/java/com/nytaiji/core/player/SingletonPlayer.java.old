@@ -1,0 +1,101 @@
+package com.nytaiji.core.player;
+
+import static com.nytaiji.core.model.Constants.KEY_PLAYER;
+import static com.nytaiji.core.model.Constants.MAIN_SETTINGS;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.nytaiji.core.base.BasePlayer;
+import com.nytaiji.core.listener.OnStateChangedListener;
+import com.nytaiji.core.nyExoPlayer.GoogleExoPlayer;
+
+
+public class SingletonPlayer {
+    private static volatile SingletonPlayer instance = null;
+    BasePlayer mediaPlayer;
+    private final Context context;
+
+    private SingletonPlayer(Context context) {
+        this.context = context;
+    }
+
+    public static SingletonPlayer getInstance(Context context) {
+        if (instance == null) {
+            synchronized (SingletonPlayer.class) {
+                if (instance == null) {
+                    instance = new SingletonPlayer(context);
+                }
+            }
+        }
+        return instance;
+    }
+
+    public BasePlayer getMediaPlayer() {
+        if (instance.mediaPlayer == null) {
+            instance.mediaPlayer = new IjkPlayer(context);
+         //   SharedPreferences playerPrefs = context.getSharedPreferences(MAIN_SETTINGS, Context.MODE_PRIVATE);
+           // int playerType = playerPrefs.getInt(KEY_PLAYER, 0);
+            // instance.mediaPlayer = playerType == 0 ? new GoogleExoPlayer(context) : playerType == 1 ? new AndroidPlayer(context):  new IjkPlayer(context);
+        }
+        return instance.mediaPlayer;
+    }
+
+    public void play(String url) {
+        if (instance.mediaPlayer != null) {
+            if (instance.mediaPlayer.isPlaying()) {
+                instance.mediaPlayer.release();
+            }
+            instance.mediaPlayer.release();
+            instance.mediaPlayer = null;
+        }
+        instance.mediaPlayer = getMediaPlayer();
+        // instance.mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        instance.mediaPlayer.setVideoUrl(url);
+        instance.mediaPlayer.prepare();
+        instance.mediaPlayer.play();
+    }
+
+    public void play(OnStateChangedListener onStateChangedListener, String url) {
+        play(url);
+        instance.mediaPlayer.setOnStateChangeListener(onStateChangedListener);
+    }
+
+    public synchronized void pause() {
+        if (instance.mediaPlayer != null) {
+            instance.mediaPlayer.pause();
+        }
+    }
+
+    public synchronized void resume() {
+        if (instance.mediaPlayer != null) {
+            instance.mediaPlayer.play();
+        }
+    }
+
+    public long getCurrentPosition() {
+        if (instance.mediaPlayer != null) {
+            return instance.mediaPlayer.getCurrentPosition();
+        }
+        return 0;
+    }
+
+    public long getDuration() {
+        if (instance.mediaPlayer != null) {
+            return instance.mediaPlayer.getDuration();
+        }
+        return 0;
+    }
+
+    public boolean isPlaying() {
+        if (instance.mediaPlayer != null) {
+            return instance.mediaPlayer.isPlaying();
+        }
+        return true;
+    }
+
+    public void setMediaPlayer(BasePlayer basePlayer) {
+        instance.mediaPlayer=basePlayer;
+    }
+}
