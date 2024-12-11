@@ -165,26 +165,20 @@ public class FilePickDialog extends DialogFragment {
                 // If the path stored in preference is a ZIP file, treat it as a ZIP
                 isInZip = true;
                 zipParentPath = new File(current_path).getParent(); // Set the parent folder of the ZIP
+                zipPassword = "";
                 try {
                     ZipFile zipFile = new ZipFile(current_path);
+                    spinner.setVisibility(View.GONE);
 
-                    // Check if the ZIP file is encrypted and not autoxip
+                    items.add(new Folder(NyFileUtil.getLastSegmentFromString(current_path), zipParentPath, true));
+                    loadZipContents(zipFile);
+                    // Check if the ZIP file is encrypted and not autozip
                     if (zipFile.isEncrypted() && !current_path.contains("_Ny")) {
                         new Handler(Looper.getMainLooper()).post(() -> {
                             showPasswordDialog(password -> {
                                 if (password != null && !password.isEmpty()) {
                                     zipPassword = password;
-                                    try {
-                                        zipFile.setPassword(zipPassword.toCharArray());
-                                        loadZipContents(zipFile);
-                                    } catch (Exception e) {
-                                        new Handler(Looper.getMainLooper()).post(() -> {
-                                            spinner.setVisibility(View.GONE);
-                                            listener.onError("Incorrect password or failed to open ZIP.");
-                                        });
-                                    }
                                 } else {
-                                    spinner.setVisibility(View.GONE);
                                     listener.onError("Password is required to open the ZIP file.");
                                 }
                             });
@@ -194,8 +188,9 @@ public class FilePickDialog extends DialogFragment {
                         if (current_path.contains("_Ny"))
                             zipPassword = getZipPassFromPath(current_path);
                         // If no password is required, just load the contents
-                        loadZipContents(zipFile);
+
                     }
+
                 } catch (IOException e) {
                     new Handler(Looper.getMainLooper()).post(() -> {
                         spinner.setVisibility(View.GONE);
@@ -249,6 +244,7 @@ public class FilePickDialog extends DialogFragment {
                     adapter = new FolderAdapter(getContext(), items, item -> {
                         if (item.isDirectory) {
                             current_path = item.path;
+                            isInZip = false;  //to synchronize with "up" bottom
                             reload();
                         } else if (item.path.endsWith(".zip")) {
                             zipParentPath = current_path;
@@ -275,6 +271,7 @@ public class FilePickDialog extends DialogFragment {
 
 
     private void loadZipContents(ZipFile zipFile) {
+
         try {
             List<FileHeader> headers = zipFile.getFileHeaders();
             for (FileHeader header : headers) {
